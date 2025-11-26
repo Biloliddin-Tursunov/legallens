@@ -1,0 +1,62 @@
+.header {
+    background-color: var(--color-primary);
+    padding: 4rem 1rem;
+    text-align: center;
+    color: var(--color-white);
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.iconWrapper {
+    margin-bottom: 1.5rem;
+}
+
+.icon {
+    color: var(--color-secondary);
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.searchBox {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border-radius: var(--radius-lg);
+    border: none;
+    font-size: 1rem;
+    box-shadow: var(--shadow-md);
+    outline: none;
+}
+
+.input:focus {
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5); /* Sariq glow */
+}

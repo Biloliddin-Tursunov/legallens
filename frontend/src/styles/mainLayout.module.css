@@ -1,0 +1,33 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Sahifa kamida ekran bo'yi bo'ladi */
+}
+
+.content {
+    flex: 1; /* Kontent joyni to'ldiradi, Footerni pastga itaradi */
+}
+
+.footer {
+    background-color: var(--color-white);
+    border-top: 1px solid var(--color-border);
+    padding: 2rem 1rem;
+    margin-top: auto;
+    text-align: center;
+}
+
+.footerContainer {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer p {
+    color: var(--color-text);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.footerSub {
+    color: var(--color-text-light) !important;
+    font-size: 0.875rem;
+}
