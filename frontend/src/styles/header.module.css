@@ -60,3 +60,133 @@
 .input:focus {
     box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5); /* Sariq glow */
 }
+/* ... (Eski stillar qoladi) ... */
+
+/* Search Input o'zgarishlari */
+.searchBox {
+    position: relative; /* Dropdown shunga bog'lanadi */
+    width: 100%;
+    max-width: 600px;
+    z-index: 50; /* Boshqa narsalarni ustida turishi uchun */
+}
+
+.clearBtn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.clearBtn:hover {
+    color: #ef4444;
+}
+
+/* DROPDOWN STILLARI (Google Style) */
+.dropdown {
+    position: absolute;
+    top: 100%; /* Inputni tagida */
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 0 0 12px 12px; /* Pastki burchaklarni aylana qilish */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    margin-top: 2px;
+    list-style: none;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+/* Agar input tepasi aylana bo'lsa, dropdown ochilganda inputni pastini to'g'irlash kerak bo'lishi mumkin. 
+   Lekin hozircha shart emas. */
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    color: var(--color-text);
+    transition: background 0.1s;
+}
+
+.dropdownItem:last-child {
+    border-bottom: none;
+}
+
+.dropdownItem:hover {
+    background-color: #f9fafb;
+}
+
+.categoryBadge {
+    font-size: 0.75rem;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #6b7280;
+}
+/* ... Eski kodlar ... */
+
+.dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    margin-top: 2px;
+    list-style: none;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    z-index: 100;
+}
+
+.dropdownItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f3f4f6;
+    color: var(--color-text);
+    transition: background 0.1s;
+}
+
+.dropdownItem:last-child {
+    border-bottom: none;
+}
+
+/* Sichqoncha borganda yoki Klaviatura bilan tanlanganda */
+.dropdownItem:hover,
+.dropdownItem.active {
+    background-color: #f3f4f6; /* Kulrang fon */
+    color: var(--color-primary); /* Matn rangi ko'k */
+}
+
+.itemIcon {
+    color: #9ca3af;
+    margin-right: 0.75rem;
+}
+
+/* Active bo'lganda ikonka rangi ham o'zgarsin */
+.dropdownItem.active .itemIcon {
+    color: var(--color-primary);
+}
+
+.categoryBadge {
+    font-size: 0.75rem;
+    background: #f3f4f6;
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: #6b7280;
+}

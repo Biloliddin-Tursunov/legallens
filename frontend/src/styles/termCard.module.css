@@ -79,3 +79,27 @@
     background-color: #9ca3af;
     border-radius: 50%;
 }
+/* Badge'lar yonma-yon turishi uchun */
+.badgesWrapper {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+}
+
+.source {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+    background-color: #f3f4f6;
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+}

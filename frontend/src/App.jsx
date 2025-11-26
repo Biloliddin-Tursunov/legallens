@@ -2,19 +2,21 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
     return (
         <Router>
             <Routes>
-                {/* Asosiy Layout ichida sahifalar almashadi */}
+                {/* Oddiy foydalanuvchilar uchun */}
                 <Route path="/" element={<MainLayout />}>
-                    {/* Bosh sahifa */}
                     <Route index element={<Home />} />
-
-                    {/* Kelajakda qo'shiladigan sahifalar uchun misol: */}
-                    {/* <Route path="/term/:id" element={<TermDetail />} /> */}
                 </Route>
+
+                {/* Admin uchun */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
             </Routes>
         </Router>
     );

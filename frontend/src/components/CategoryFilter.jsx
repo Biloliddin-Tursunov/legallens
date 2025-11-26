@@ -1,33 +1,49 @@
 import React from "react";
-import { Scale, Briefcase, Gavel, Building2, Users, Home } from "lucide-react";
+// Hamma kerakli ikonkalarni import qilamiz
+import {
+    Scale,
+    Briefcase,
+    Gavel,
+    Building2,
+    Users,
+    Home,
+    Globe,
+} from "lucide-react";
 import styles from "../styles/categoryFilter.module.css";
 
-const categories = [
-    { id: "all", label: "Barchasi", icon: null },
-    { id: "civil", label: "Fuqarolik huquqi", icon: Scale },
-    { id: "criminal", label: "Jinoyat huquqi", icon: Briefcase },
-    { id: "constitution", label: "Konstitutsiyaviy huquq", icon: Gavel },
-    { id: "admin", label: "Ma'muriy huquq", icon: Building2 },
-    { id: "labor", label: "Mehnat huquqi", icon: Users },
-    { id: "family", label: "Oilaviy huquq", icon: Home },
-];
+// String nomlarni komponentga bog'lash
+const iconMap = {
+    Scale: Scale,
+    Briefcase: Briefcase,
+    Gavel: Gavel,
+    Building2: Building2,
+    Users: Users,
+    Home: Home,
+    Globe: Globe,
+};
 
-const CategoryFilter = ({ activeCategory, setActiveCategory }) => {
+// categories propini Home.jsx dan olamiz
+const CategoryFilter = ({ categories, activeCategory, setActiveCategory }) => {
+    // "Barchasi" tugmasini qo'lda qo'shamiz
+    const allButton = { id: "all", slug: "all", name: "Barchasi", icon: null };
+    const displayList = [allButton, ...categories];
+
     return (
         <div className={styles.container}>
-            {categories.map((cat) => {
-                const Icon = cat.icon;
-                const isActive = activeCategory === cat.id;
+            {displayList.map((cat) => {
+                // Bazadan icon nomi "Scale" bo'lib keladi, biz uni iconMap dan topamiz
+                const IconComponent = cat.icon ? iconMap[cat.icon] : null;
+                const isActive = activeCategory === cat.slug;
 
                 return (
                     <button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
+                        key={cat.id || cat.slug}
+                        onClick={() => setActiveCategory(cat.slug)}
                         className={`${styles.button} ${
                             isActive ? styles.active : ""
                         }`}>
-                        {Icon && <Icon size={18} />}
-                        <span>{cat.label}</span>
+                        {IconComponent && <IconComponent size={18} />}
+                        <span>{cat.name}</span>
                     </button>
                 );
             })}
