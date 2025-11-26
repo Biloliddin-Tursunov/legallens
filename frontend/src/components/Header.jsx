@@ -7,10 +7,7 @@ const Header = ({ onTermSelect }) => {
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
-
-    // YANGI: Klaviatura orqali tanlangan qator indeksi (-1 = hech narsa tanlanmagan)
     const [activeSuggestion, setActiveSuggestion] = useState(-1);
-
     const dropdownRef = useRef(null);
 
     // Tashqariga bosilganda yopish
@@ -28,26 +25,38 @@ const Header = ({ onTermSelect }) => {
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Qidiruv funksiyasi
+    // 1. INPUT O'ZGARGANDA ISHLAYDIGAN FUNKSIYA (Yangi qo'shildi)
+    // Tozalash logikasini shu yerga oldik -> Bu "Cascading render" xatosini yo'qotadi
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        setQuery(value);
+
+        // Agar so'z juda qisqa bo'lsa, shu zahoti tozalaymiz (Effect kutilmaydi)
+        if (value.trim().length <= 1) {
+            setSuggestions([]);
+            setShowDropdown(false);
+            setActiveSuggestion(-1);
+        }
+    };
+
+    // 2. QIDIRUV (EFFECT) - Faqat serverga so'rov yuborish uchun javobgar
     useEffect(() => {
-        const delayDebounceFn = setTimeout(async () => {
-            if (query.trim().length > 1) {
-                const { data, error } = await supabase.rpc("search_terms", {
-                    keyword: query,
-                });
+        // Agar so'z qisqa bo'lsa, hech narsa qilma (chunki handleInputChange allaqachon tozalab bo'ldi)
+        if (query.trim().length <= 1) return;
 
-                if (!error) {
-                    setSuggestions(data);
-                    setShowDropdown(true);
-                    setActiveSuggestion(-1); // Qidiruv o'zgarganda tanlovni reset qilamiz
-                }
-            } else {
-                setSuggestions([]);
-                setShowDropdown(false);
+        const timer = setTimeout(async () => {
+            const { data, error } = await supabase.rpc("search_terms", {
+                keyword: query,
+            });
+
+            if (!error && data) {
+                setSuggestions(data);
+                setShowDropdown(true);
+                setActiveSuggestion(-1);
             }
-        }, 300);
+        }, 150); // 150ms debounce
 
-        return () => clearTimeout(delayDebounceFn);
+        return () => clearTimeout(timer);
     }, [query]);
 
     const handleSelect = (term) => {
@@ -55,7 +64,7 @@ const Header = ({ onTermSelect }) => {
         setShowDropdown(false);
         setActiveSuggestion(-1);
         if (onTermSelect) {
-            onTermSelect(term);
+            onTermSelect({ id: term.id, title: term.title });
         }
     };
 
@@ -66,28 +75,25 @@ const Header = ({ onTermSelect }) => {
         if (onTermSelect) onTermSelect(null);
     };
 
-    // YANGI: KLAVIATURA BOSILGANDA ISHLAYDIGAN FUNKSIYA
     const handleKeyDown = (e) => {
-        // Agar dropdown yopiq bo'lsa yoki tavsiyalar yo'q bo'lsa, hech narsa qilma
         if (!showDropdown || suggestions.length === 0) return;
 
         if (e.key === "ArrowDown") {
-            e.preventDefault(); // Sahifa pastga tushib ketmasligi uchun
-            // Agar oxiriga yetgan bo'lsa boshiga qaytadi, bo'lmasa pastga tushadi
+            e.preventDefault();
             setActiveSuggestion((prev) =>
                 prev < suggestions.length - 1 ? prev + 1 : 0
             );
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
-            // Agar boshida bo'lsa oxiriga o'tadi, bo'lmasa tepaga chiqadi
             setActiveSuggestion((prev) =>
                 prev > 0 ? prev - 1 : suggestions.length - 1
             );
         } else if (e.key === "Enter") {
-            // Agar biron qator tanlangan bo'lsa, o'shani tanlaymiz
+            e.preventDefault();
             if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
-                e.preventDefault();
                 handleSelect(suggestions[activeSuggestion]);
+            } else if (suggestions.length > 0) {
+                handleSelect(suggestions[0]);
             }
         } else if (e.key === "Escape") {
             setShowDropdown(false);
@@ -114,11 +120,13 @@ const Header = ({ onTermSelect }) => {
                         className={styles.input}
                         placeholder="Atamani qidiring (masalan: Aybdorlik)..."
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        // O'ZGARISH: To'g'ridan-to'g'ri setQuery emas, handleInputChange chaqiriladi
+                        onChange={handleInputChange}
                         onFocus={() =>
-                            query.length > 1 && setShowDropdown(true)
+                            query.length > 1 &&
+                            suggestions.length > 0 &&
+                            setShowDropdown(true)
                         }
-                        // YANGI: Klaviatura hodisasini ulaymiz
                         onKeyDown={handleKeyDown}
                     />
 
@@ -135,14 +143,12 @@ const Header = ({ onTermSelect }) => {
                             {suggestions.map((term, index) => (
                                 <li
                                     key={term.id}
-                                    // YANGI: Agar index activeSuggestion ga teng bo'lsa, 'active' klassini qo'shamiz
                                     className={`${styles.dropdownItem} ${
                                         index === activeSuggestion
                                             ? styles.active
                                             : ""
                                     }`}
                                     onClick={() => handleSelect(term)}
-                                    // Sichqoncha bilan ustiga borganda ham activeni o'zgartiramiz
                                     onMouseEnter={() =>
                                         setActiveSuggestion(index)
                                     }>
@@ -153,9 +159,11 @@ const Header = ({ onTermSelect }) => {
                                         />
                                         <span>{term.title}</span>
                                     </div>
-                                    <span className={styles.categoryBadge}>
-                                        Atama
-                                    </span>
+                                    {term.category_slug && (
+                                        <span className={styles.categoryBadge}>
+                                            {term.category_slug}
+                                        </span>
+                                    )}
                                 </li>
                             ))}
                         </ul>
