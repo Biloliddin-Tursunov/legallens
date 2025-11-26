@@ -28,3 +28,51 @@
     margin-bottom: 1.5rem;
     color: var(--color-text);
 }
+/* ... faylning eng pastiga qo'shing ... */
+
+.loadMoreBtn {
+    width: 100%;
+    padding: 1rem; /* Bosish uchun qulay kattalik */
+    margin-top: 2rem;
+
+    background-color: #ffffff;
+    border: 1px solid var(--color-border); /* Och kulrang chegara */
+    border-radius: 0.75rem; /* Yumshoq burchaklar */
+
+    color: var(--color-text-light); /* Kulrang matn */
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: var(--font-main);
+
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Ikonka va yozuv orasi */
+
+    transition: all 0.2s ease; /* Silliq o'zgarish */
+}
+
+/* Sichqoncha borganda */
+.loadMoreBtn:hover {
+    border-color: var(--color-primary); /* Chegara ko'k bo'ladi */
+    color: var(--color-primary); /* Matn ko'k bo'ladi */
+    background-color: #eff6ff; /* Juda och ko'k fon */
+    box-shadow: 0 4px 6px -1px rgba(26, 86, 219, 0.1); /* Yengil soya */
+}
+
+/* Bosilganda */
+.loadMoreBtn:active {
+    transform: translateY(2px); /* Biroz ichkariga kirish effekti */
+    box-shadow: none;
+}
+
+/* Yuklanayotganda (disabled) */
+.loadMoreBtn:disabled {
+    opacity: 0.7;
+    cursor: wait; /* Kutish kursorchasi */
+    background-color: #f3f4f6;
+    border-color: var(--color-border);
+    color: var(--color-text-light);
+    transform: none;
+}

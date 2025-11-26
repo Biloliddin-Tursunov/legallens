@@ -18,7 +18,7 @@ const MainLayout = () => {
                         huquqlar himoyalangan.
                     </p>
                     <p className={styles.footerSub}>
-                        AI yordamida yuridik savodxonlikni oshiramiz.
+                        Yuridik savodxonlikni oshiramiz.
                     </p>
                 </div>
             </footer>
