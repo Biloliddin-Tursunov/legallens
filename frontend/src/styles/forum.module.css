@@ -1,0 +1,198 @@
+/* Asosiy Layout */
+.page {
+    min-height: 100vh;
+    background-color: #f8fafc; /* Och kulrang fon */
+}
+
+/* Header */
+.forumHeader {
+    background-color: var(--color-primary); /* Ko'k fon */
+    color: white;
+    padding: 3rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-bottom: 5px solid #ffbf00; /* Sariq chiziq qo'shamiz */
+}
+
+.headerIcon {
+    margin-bottom: 0.5rem;
+}
+
+.headerTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.headerSubtitle {
+    font-size: 1rem;
+    color: #cbd5e1;
+    max-width: 600px;
+}
+
+/* Asosiy Kontent va Grid */
+.mainContent {
+    padding: 2rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr; /* 3/4 savollar, 1/4 sidebar */
+    gap: 2rem;
+}
+
+.questionList {
+    /* Savollar joylashgan joy */
+}
+
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.askButton {
+    background-color: #4caf50; /* Yashil rang */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.askButton:hover {
+    background-color: #45a049;
+}
+
+/* Savol Kartochkasi */
+.questionCard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    transition: box-shadow 0.2s;
+}
+
+.questionCard:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.stats {
+    flex-shrink: 0;
+    width: 80px;
+    text-align: center;
+    margin-right: 1.5rem;
+    padding-right: 1.5rem;
+    border-right: 1px solid #e2e8f0;
+    color: #64748b;
+}
+
+.answerCount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.summary {
+    flex-grow: 1;
+}
+
+.qTitle {
+    font-size: 1.125rem;
+    color: var(--color-text);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.tags {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+
+.meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    text-align: right;
+}
+
+.author {
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Sidebar */
+.sidebar {
+    /* Sticky qilib qo'ysak, skroll qilganda turadi */
+}
+
+.sidebarCard {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.cardTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.ruleList {
+    list-style: none;
+    padding: 0;
+}
+
+.ruleList li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #475569;
+}
+
+.ruleIcon {
+    color: #f59e0b; /* Sariq rang */
+}
+
+/* Mobil moslashuv */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr; /* Mobile da sidebar pastga tushadi */
+    }
+    .stats {
+        width: 60px;
+        font-size: 0.9rem;
+    }
+}

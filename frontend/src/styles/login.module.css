@@ -1,33 +1,49 @@
 .container {
-    min-height: 100vh;
     display: flex;
-    align-items: center;
     justify-content: center;
-    background-color: var(--color-bg);
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f8fafc;
 }
 
 .card {
     background: white;
-    padding: 2rem;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
+}
+
+.centeredContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
 }
 
 .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
     margin-bottom: 1.5rem;
-    color: var(--color-primary);
 }
 
 .input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 1rem;
     margin-bottom: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
     font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
 }
 
 .button {
@@ -36,13 +52,96 @@
     background-color: var(--color-primary);
     color: white;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 0.5rem;
+    font-weight: 600;
     cursor: pointer;
-    font-size: 1rem;
+    transition: background-color 0.2s;
+}
+
+.button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.meta {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+.metaLink {
+    background: none;
+    border: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0;
+    margin-left: 0.5rem;
+    text-decoration: none;
 }
 
 .error {
-    color: red;
+    color: #ef4444;
     margin-bottom: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+}
+
+/* --- OTP VIZUAL KIRITISH QISMI --- */
+.otpContainer {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.otpBox {
+    width: 45px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: white;
+}
+
+.otpActive {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.2);
+}
+
+.otpFilled {
+    /* Kod kiritilgan katakchalar uchun qo'shimcha stil */
+    border-color: #cbd5e1;
+}
+
+/* Yashirin input: Fokusni ushlash uchun */
+.hiddenInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.formCode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.telegramLink {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
 }
