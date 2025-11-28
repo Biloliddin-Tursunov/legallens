@@ -7,15 +7,18 @@ import {
 } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 
+// 🔥 GLOBAL NAVIGATSIYA QO'SHILDI
+import Navigation from "./components/Navigation";
+
 // Layout & Pages
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
-import Login from "./pages/Login"; // Admin Login
+import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import Forum from "./pages/Forum";
-import Account from "./pages/Account"; // <-- YANGI
-import QuestionDetail from "./pages/QuestionDetail"; // <-- YANGI
+import Account from "./pages/Account";
+import QuestionDetail from "./pages/QuestionDetail";
 
 function App() {
     const [session, setSession] = useState(null);
@@ -36,29 +39,31 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    if (loading) return null; // Yuklanish holati
+    if (loading) return null;
 
     return (
         <Router>
+            {/* 🔥 BU YERDA: Navigation hamma sahifalar ustida turadi. */}
+            <Navigation />
+
             <Routes>
+                {/* Asosiy Sahifa */}
                 <Route path="/" element={<MainLayout session={session} />}>
                     <Route index element={<Home />} />
                 </Route>
 
-                {/* Forum va uning ichki sahifasi */}
+                {/* Forum Sahifalari */}
                 <Route path="/forum" element={<Forum session={session} />} />
                 <Route
                     path="/forum/:id"
                     element={<QuestionDetail session={session} />}
                 />
 
-                {/* Login sahifasi (Agar kirgan bo'lsa Accountga otadi) */}
+                {/* Auth va Account */}
                 <Route
                     path="/login"
                     element={session ? <Navigate to="/account" /> : <Auth />}
                 />
-
-                {/* Account sahifasi (Himoyalangan) */}
                 <Route
                     path="/account"
                     element={

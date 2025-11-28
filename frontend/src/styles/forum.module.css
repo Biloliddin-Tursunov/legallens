@@ -1,198 +1,321 @@
-/* Asosiy Layout */
+/* Asosiy sahifa foni */
 .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8fafc;
     min-height: 100vh;
-    background-color: #f8fafc; /* Och kulrang fon */
 }
 
-/* Header */
+/* Header qismi */
 .forumHeader {
-    background-color: var(--color-primary); /* Ko'k fon */
-    color: white;
-    padding: 3rem 1rem;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 20px;
+    margin-bottom: 40px;
     text-align: center;
-    border-bottom: 5px solid #ffbf00; /* Sariq chiziq qo'shamiz */
-}
-
-.headerIcon {
-    margin-bottom: 0.5rem;
+    padding-top: 20px;
 }
 
 .headerTitle {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    color: #1e293b;
+    font-weight: 800;
+    margin: 0;
 }
 
-.headerSubtitle {
+.headerIcon {
+    color: #3b82f6;
+}
+
+/* Qidiruv konteyneri */
+.searchContainer {
+    display: flex;
+    width: 100%;
+    max-width: 800px;
+    gap: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.searchInputWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-color: #f1f5f9;
     font-size: 1rem;
-    color: #cbd5e1;
-    max-width: 600px;
+    color: #334155;
+    transition: all 0.2s;
+    outline: none;
 }
 
-/* Asosiy Kontent va Grid */
+.searchInput:focus {
+    background-color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.askButton {
+    padding: 0 24px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+
+.askButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.askButton:active {
+    transform: translateY(0);
+}
+
+/* Grid Layout */
 .mainContent {
-    padding: 2rem 1rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    display: flex;
+    justify-content: center;
 }
 
 .grid {
     display: grid;
-    grid-template-columns: 3fr 1fr; /* 3/4 savollar, 1/4 sidebar */
-    gap: 2rem;
+    grid-template-columns: 1fr 300px;
+    gap: 30px;
+    width: 100%;
 }
 
-.questionList {
-    /* Savollar joylashgan joy */
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-.listHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.askButton {
-    background-color: #4caf50; /* Yashil rang */
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.askButton:hover {
-    background-color: #45a049;
-}
-
-/* Savol Kartochkasi */
+/* Savol Kartochkasi (CARD) Styles */
 .questionCard {
     background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 0 rgba(0, 0, 0, 0.02);
     border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    transition: all 0.2s ease-in-out;
     display: flex;
-    transition: box-shadow 0.2s;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.questionCard::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #3b82f6;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 .questionCard:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+    border-color: #cbd5e1;
 }
 
-.stats {
-    flex-shrink: 0;
-    width: 80px;
-    text-align: center;
-    margin-right: 1.5rem;
-    padding-right: 1.5rem;
-    border-right: 1px solid #e2e8f0;
+.questionCard:hover::before {
+    opacity: 1;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
     color: #64748b;
+    margin-bottom: 2px;
 }
 
-.answerCount {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary);
+.authorWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.summary {
-    flex-grow: 1;
+.authorAvatar {
+    width: 24px;
+    height: 24px;
+    background: #e0f2fe;
+    color: #0284c7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
 }
 
-.qTitle {
-    font-size: 1.125rem;
-    color: var(--color-text);
+.authorName {
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    color: #334155;
 }
 
-.tags {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
+.postDate {
+    color: #94a3b8;
+}
+
+.cardTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-decoration: none;
+    line-height: 1.4;
+    margin: 0;
+    transition: color 0.2s;
+}
+
+.cardTitle:hover {
+    color: #2563eb;
+}
+
+.cardBody {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 2 qatordan keyin ... qo'yadi */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.cardFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    background-color: #f1f5f9;
-    color: #475569;
-    padding: 0.3rem 0.6rem;
-    border-radius: 4px;
+    background: #f1f5f9;
+    color: #64748b;
+    padding: 4px 12px;
+    border-radius: 20px;
     font-size: 0.75rem;
-    margin-right: 0.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background 0.2s;
 }
 
-.meta {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    text-align: right;
+.tag:hover {
+    background: #e2e8f0;
+    color: #475569;
 }
 
-.author {
-    color: #1e293b;
-    font-weight: 500;
+.readMoreBtn {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #eff6ff;
+    transition: background 0.2s;
 }
 
-/* Sidebar */
+.readMoreBtn:hover {
+    background: #dbeafe;
+}
+
+/* Sidebar Styles */
 .sidebar {
-    /* Sticky qilib qo'ysak, skroll qilganda turadi */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
 }
 
 .sidebarCard {
     background: white;
+    padding: 24px;
+    border-radius: 16px;
     border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.cardTitle {
+.sidebarTitle {
     font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-primary);
-    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .tagList {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .ruleList {
     list-style: none;
     padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-.ruleList li {
+.ruleItem {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    align-items: flex-start;
+    gap: 12px;
     color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .ruleIcon {
-    color: #f59e0b; /* Sariq rang */
-}
-
-/* Mobil moslashuv */
-@media (max-width: 768px) {
-    .grid {
-        grid-template-columns: 1fr; /* Mobile da sidebar pastga tushadi */
-    }
-    .stats {
-        width: 60px;
-        font-size: 0.9rem;
-    }
+    color: #eab308;
+    flex-shrink: 0;
+    background: #fef9c3;
+    padding: 4px;
+    border-radius: 6px;
 }
