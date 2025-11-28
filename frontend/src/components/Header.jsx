@@ -10,6 +10,22 @@ const Header = ({ onTermSelect }) => {
     const [activeSuggestion, setActiveSuggestion] = useState(-1);
     const dropdownRef = useRef(null);
 
+    const [session, setSession] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+        // Login/Logout bo'lganda yangilash
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+        return () => subscription.unsubscribe();
+    }, []);
+
     // Tashqariga bosilganda yopish
     useEffect(() => {
         const handleClickOutside = (event) => {

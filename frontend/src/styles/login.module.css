@@ -4,144 +4,148 @@
     align-items: center;
     min-height: 100vh;
     background-color: #f8fafc;
+    padding: 1rem;
 }
 
 .card {
     background: white;
     padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
+    text-align: center;
 }
 
-.centeredContent {
+.iconWrapper {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 50%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
 }
 
 .title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 1.5rem;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
 }
 
-.input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    border: 1px solid #cbd5e1;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none;
-}
-
-.input:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
-}
-
-.button {
-    width: 100%;
-    padding: 0.75rem;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.button:hover {
-    background-color: var(--color-primary-dark);
-}
-
-.button:disabled {
-    background-color: #94a3b8;
-    cursor: not-allowed;
-}
-
-.meta {
-    font-size: 0.875rem;
+.description {
     color: #64748b;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
 }
 
-.metaLink {
-    background: none;
-    border: none;
-    color: var(--color-primary);
-    cursor: pointer;
-    font-weight: 500;
-    padding: 0;
-    margin-left: 0.5rem;
+.botLink {
+    color: #2563eb;
+    font-weight: 600;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s;
 }
 
-.error {
-    color: #ef4444;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
+.botLink:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
 }
 
-/* --- OTP VIZUAL KIRITISH QISMI --- */
+/* OTP Input Styles */
+.otpWrapper {
+    position: relative;
+    margin-bottom: 1.5rem;
+    cursor: text;
+}
+
 .otpContainer {
     display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 2rem;
-    position: relative;
-    z-index: 2;
+    justify-content: space-between;
+    gap: 8px;
 }
 
 .otpBox {
     width: 45px;
-    height: 60px;
+    height: 55px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     font-weight: 600;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    background-color: white;
+    color: #1e293b;
+    background: #fff;
+    transition: all 0.2s ease;
 }
 
-.otpActive {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.2);
+.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.otpFilled {
-    /* Kod kiritilgan katakchalar uchun qo'shimcha stil */
+.filled {
+    background-color: #f8fafc;
     border-color: #cbd5e1;
 }
 
-/* Yashirin input: Fokusni ushlash uchun */
+.errorBox {
+    border-color: #ef4444;
+    color: #ef4444;
+    animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
 .hiddenInput {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     opacity: 0;
-    z-index: 1;
-    pointer-events: none;
+    cursor: text;
 }
 
-.formCode {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
+/* Status Messages */
+.statusMessage {
+    height: 24px; /* O'rinni band qilib turish uchun */
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
-.telegramLink {
-    color: var(--color-primary);
-    text-decoration: none;
-    font-weight: 600;
+.loading {
+    color: #3b82f6;
+}
+
+.success {
+    color: #10b981;
+}
+
+.error {
+    color: #ef4444;
+}
+
+@keyframes shake {
+    10%,
+    90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    20%,
+    80% {
+        transform: translate3d(2px, 0, 0);
+    }
+    30%,
+    50%,
+    70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+    40%,
+    60% {
+        transform: translate3d(4px, 0, 0);
+    }
 }
