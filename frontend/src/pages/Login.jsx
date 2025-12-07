@@ -8,8 +8,9 @@ import styles from "../styles/login.module.css";
 const BOT_USERNAME = "@legallens_bot";
 // Backend API manzili (Express serveringiz)
 
-const API_URL =
-    "https://api-legallens-uz.onrender.com/api/verify-telegram-code";
+const API_URL = import.meta.env.PROD
+    ? "https://api-legallens-uz.onrender.com/api/verify-telegram-code" // Production (Render)
+    : "/api/verify-telegram-code"; // Development (Localhost)
 
 const Login = () => {
     const [authCode, setAuthCode] = useState("");
