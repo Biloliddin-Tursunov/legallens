@@ -7,6 +7,7 @@ import styles from "../styles/login.module.css";
 // Bot username (start link uchun)
 const BOT_USERNAME = "@legallens_bot";
 // Backend API manzili (Express serveringiz)
+
 const API_URL =
     "https://api-legallens-uz.onrender.com/api/verify-telegram-code";
 
