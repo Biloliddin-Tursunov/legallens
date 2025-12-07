@@ -18,6 +18,7 @@
 }
 
 .icon {
+    width: 160px;
     color: var(--color-secondary);
 }
 

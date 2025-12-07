@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Scale, Search, X } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import styles from "../styles/header.module.css";
+import Logo from "../assets/logo.png";
 
 const Header = ({ onTermSelect }) => {
     const [query, setQuery] = useState("");
@@ -73,7 +74,7 @@ const Header = ({ onTermSelect }) => {
                 */}
 
                 <div className={styles.iconWrapper}>
-                    <Scale size={64} className={styles.icon} />
+                    <img src={Logo} className={styles.icon} />
                 </div>
 
                 <h1 className={styles.title}>Yuridik Lug'at va Atamalar</h1>
