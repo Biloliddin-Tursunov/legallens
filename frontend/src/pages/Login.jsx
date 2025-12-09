@@ -115,9 +115,7 @@ const Login = () => {
 
                     {/* Telegram Button (UX Improvement) */}
                     <a
-                        href={`https://t.me/${BOT_USERNAME.substring(
-                            1
-                        )}?start=login`}
+                        href={`https://t.me/${BOT_USERNAME.substring(1)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.telegramBtn}>
