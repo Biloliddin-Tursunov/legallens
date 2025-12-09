@@ -65,10 +65,11 @@ const Account = ({ session }) => {
 
                 // 4. Saqlangan Atamalar
                 if (activeTab === "saved") {
+                    // 🔥 Auth ID ni to'g'ridan-to'g'ri ishlatamiz
                     const { data } = await supabase
                         .from("saved_terms")
-                        .select("id, terms(*)") // saved_terms IDsi va terms ma'lumotlari
-                        .eq("user_id", userData.id) // Auth user emas, public.users ID
+                        .select("id, terms(*)")
+                        .eq("user_id", session.user.id) // Auth ID
                         .order("created_at", { ascending: false });
                     setSavedTerms(data || []);
                 }

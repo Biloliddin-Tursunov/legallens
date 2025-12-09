@@ -9,28 +9,54 @@ import styles from "../styles/home.module.css";
 
 const ITEMS_PER_PAGE = 4;
 
-const Home = () => {
-    // STATE LAR
+// 🔥 session propini to'g'ri qabul qiladi
+const Home = ({ session }) => {
+    // ... boshqa statelar
     const [activeCategory, setActiveCategory] = useState("all");
     const [categories, setCategories] = useState([]);
-
-    // Ekranda ko'rsatiladigan ro'yxat
     const [displayTerms, setDisplayTerms] = useState([]);
-
-    // Qidiruv statelari
-    const [searchQuery, setSearchQuery] = useState(""); // 🔥 YANGI: Enter orqali qidirilgan so'z
-    const [searchedTerm, setSearchedTerm] = useState(null); // Dropdown orqali tanlangan bitta atama
-
-    // KESH (Xotira)
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchedTerm, setSearchedTerm] = useState(null);
     const [cache, setCache] = useState({});
-
-    // Texnik state
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true);
+
+    // 🔥 MUHIM: Saqlangan atamalar ID lari
+    const [savedTermIds, setSavedTermIds] = useState(new Set());
 
     const resultsRef = useRef(null);
 
-    // 1. KATEGORIYALARNI YUKLASH
+    // --- YORDAMCHI FUNKSIYALAR ---
+
+    // 🔥 1. Saqlangan atamalarni bazadan olib kelib, Setni yangilash
+    const fetchSavedTerms = async () => {
+        if (!session?.user) {
+            setSavedTermIds(new Set());
+            return;
+        }
+
+        try {
+            // RLS Auth.uid() ga ulanganini inobatga olib, to'g'ridan-to'g'ri foydalanamiz
+            const { data: savedData, error } = await supabase
+                .from("saved_terms")
+                .select("term_id")
+                .eq("user_id", session.user.id);
+
+            if (error) throw error;
+
+            if (savedData) {
+                const ids = new Set(savedData.map((item) => item.term_id));
+                setSavedTermIds(ids);
+            }
+        } catch (e) {
+            console.error("Saqlanganlarni yuklashda xato:", e);
+            setSavedTermIds(new Set());
+        }
+    };
+
+    // --- USE EFFECTS ---
+
+    // 1. Kategoriya va Saqlanganlarni yuklash
     useEffect(() => {
         const fetchCats = async () => {
             const { data } = await supabase
@@ -42,73 +68,64 @@ const Home = () => {
         fetchCats();
     }, []);
 
-    // 2. KATEGORIYA ALMASHGANDA
+    // 2. Session o'zgarganda saqlanganlarni yangilash
     useEffect(() => {
-        // Kategoriya almashsa, qidiruvlarni tozalaymiz
+        fetchSavedTerms();
+    }, [session]); // Sessionga bog'langan
+
+    // 3. Kategoriya o'zgarganda (Avvalgi kabi qoladi)
+    useEffect(() => {
         setSearchedTerm(null);
         setSearchQuery("");
-
-        // Keshda bormi?
         if (cache[activeCategory]) {
             setDisplayTerms(cache[activeCategory].data);
             setHasMore(cache[activeCategory].hasMore);
             setLoading(false);
         } else {
-            // Yo'q bo'lsa, yangidan yuklaymiz
             setDisplayTerms([]);
-            fetchTerms(0, activeCategory, ""); // Search bo'sh
+            fetchTerms(0, activeCategory, "");
         }
     }, [activeCategory]);
 
-    // 🔥 3. ASOSIY FETCH FUNKSIYASI (Universal)
+    // ... fetchTerms, handleSearch, handleTermSelect, fetchSingleTerm, loadMore funksiyalari o'zgarishsiz qoladi
+
     const fetchTerms = async (pageNumber, categorySlug, searchString = "") => {
+        // ... (Bu funksiya avvalgi kabi uzun bo'lib qolaveradi) ...
+        // Qolgan logika avvalgi kabi
         try {
             setLoading(true);
-
             let query = supabase.from("terms");
 
-            // Queryni shakllantirish (Select)
-            // Agar qidiruv bo'lsa yoki kategoriya tanlangan bo'lsa
             let selectString = `
                 *,
                 laws ( title, short_name ),
-                term_categories (
-                    categories ( name, slug, icon )
-                )
+                term_categories ( categories ( name, slug, icon ) )
             `;
 
-            // Agar aniq kategoriya bo'lsa (va qidiruv bo'lmasa)
             if (categorySlug !== "all" && !searchString) {
-                // !inner ishlatamiz filtrlash uchun
                 selectString = `
                     *,
                     laws ( title, short_name ),
-                    term_categories!inner (
-                        category_id,
-                        categories ( name, slug, icon )
-                    )
+                    term_categories!inner ( category_id, categories ( name, slug, icon ) )
                 `;
             }
 
             query = query.select(selectString);
 
-            // --- A) QIDIRUV REJIMI ---
             if (searchString) {
-                // Title ustunidan qidiramiz (ilike - katta kichik harf farq qilmaydi)
-                query = query.ilike("title", `%${searchString}%`);
-                query = query.order("title", { ascending: true });
-            }
-            // --- B) KATEGORIYA REJIMI ---
-            else if (categorySlug !== "all") {
+                query = query
+                    .ilike("title", `%${searchString}%`)
+                    .order("title", { ascending: true });
+            } else if (categorySlug !== "all") {
                 const { data: catData } = await supabase
                     .from("categories")
                     .select("id")
                     .eq("slug", categorySlug)
                     .single();
-
                 if (catData) {
-                    query = query.eq("term_categories.category_id", catData.id);
-                    query = query.order("title", { ascending: true });
+                    query = query
+                        .eq("term_categories.category_id", catData.id)
+                        .order("title", { ascending: true });
                 }
             }
             // --- C) BARCHASI REJIMI ---
@@ -117,21 +134,18 @@ const Home = () => {
                 // Bu yerda order ID bo'yicha ketadi default holatda
             }
 
-            // PAGINATION
             const from = pageNumber * ITEMS_PER_PAGE;
             const to = from + ITEMS_PER_PAGE - 1;
-
             const { data, error } = await query.range(from, to);
 
             if (error) throw error;
 
-            // RANDOM (Faqat "Barchasi" va qidiruvsiz bo'lsa)
             let finalData = data;
-            if (categorySlug === "all" && !searchString) {
+            if (categorySlug === "all" && !searchString && pageNumber === 0) {
+                // Faqat boshida random qilamiz
                 finalData = data.sort(() => Math.random() - 0.5);
             }
 
-            // FORMATLASH
             const formattedNewTerms = finalData.map((term) => ({
                 ...term,
                 categoriesList: term.term_categories
@@ -140,7 +154,6 @@ const Home = () => {
                 law: term.laws,
             }));
 
-            // STATE YANGILASH
             const isMore = formattedNewTerms.length >= ITEMS_PER_PAGE;
 
             if (pageNumber === 0) {
@@ -150,7 +163,6 @@ const Home = () => {
             }
             setHasMore(isMore);
 
-            // Agar qidiruv BO'LMASA, keshlaymiz
             if (!searchString) {
                 setCache((prev) => ({
                     ...prev,
@@ -174,29 +186,23 @@ const Home = () => {
         }
     };
 
-    // 🔥 4. HEADERDAN "ENTER" BOSILGANDA
+    // ... handleSearch, handleTermSelect, fetchSingleTerm, loadMore funksiyalari ham avvalgi kabi qoladi.
     const handleSearch = (term) => {
-        // Hamma narsani tozalab, qidiruvni boshlaymiz
-        setSearchedTerm(null); // Dropdown tanlovi olib tashlanadi
-        setSearchQuery(term); // Qidiruv so'zi saqlanadi
-        setActiveCategory("all"); // Kategoriyani reset qilamiz (UX uchun)
-        setDisplayTerms([]); // Ekranni tozalaymiz
-
-        // Agar bo'sh bo'lsa, shunchaki hammasini yuklaydi
+        setSearchedTerm(null);
+        setSearchQuery(term);
+        setActiveCategory("all");
+        setDisplayTerms([]);
         fetchTerms(0, "all", term);
-
-        // Natijalarga skroll qilish
-        setTimeout(() => {
-            if (resultsRef.current) {
-                resultsRef.current.scrollIntoView({
+        setTimeout(
+            () =>
+                resultsRef.current?.scrollIntoView({
                     behavior: "smooth",
                     block: "start",
-                });
-            }
-        }, 100);
+                }),
+            100
+        );
     };
 
-    // 5. DROPDOWNDAN TANLANGANDA
     const handleTermSelect = (term) => {
         if (!term) {
             setSearchedTerm(null);
@@ -207,8 +213,7 @@ const Home = () => {
 
     const fetchSingleTerm = async (termId) => {
         setLoading(true);
-        setSearchQuery(""); // Qidiruv so'zini tozalaymiz (chunki aniq bittasi tanlandi)
-
+        setSearchQuery("");
         const { data } = await supabase
             .from("terms")
             .select(
@@ -228,30 +233,72 @@ const Home = () => {
             setSearchedTerm(formatted);
         }
         setLoading(false);
-
-        if (resultsRef.current) {
-            resultsRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-            });
-        }
+        resultsRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
     };
 
-    // 6. YANA YUKLASH (LOAD MORE)
     const loadMore = () => {
-        // Hozirgi sahifa raqamini hisoblash (yuklanganlar soniga qarab)
         const nextPage = Math.floor(displayTerms.length / ITEMS_PER_PAGE);
         fetchTerms(nextPage, activeCategory, searchQuery);
     };
 
-    // RENDER
-    // Agar searchedTerm (bitta) bo'lsa o'shani, bo'lmasa displayTerms (ro'yxat)ni ko'rsat
+    // 🔥 4. SAQLASH TUGMASI LOGIKASI (Optimistik UI dan voz kechib, mustahkamlandi)
+    const handleToggleSave = async (termId) => {
+        if (!session?.user) {
+            alert("Atamani saqlash uchun tizimga kiring!");
+            return;
+        }
+
+        const currentAuthUid = session.user.id;
+        const isCurrentlySaved = savedTermIds.has(termId);
+
+        // Optimistik UI dan voz kechib, loading ni ishlatamiz
+        setLoading(true);
+
+        try {
+            if (isCurrentlySaved) {
+                // --- DELETE Operatsiyasi ---
+                const { error } = await supabase
+                    .from("saved_terms")
+                    .delete()
+                    .eq("user_id", currentAuthUid)
+                    .eq("term_id", termId);
+
+                if (error)
+                    throw new Error(
+                        "O'chirishda xato yuz berdi: " + error.message
+                    );
+            } else {
+                // --- INSERT Operatsiyasi ---
+                const { error } = await supabase
+                    .from("saved_terms")
+                    .insert({ user_id: currentAuthUid, term_id: termId });
+
+                // Xatolik 23505 (duplicate key) yuz bersa ham uni tutib, xabar beramiz
+                if (error && error.code !== "23505")
+                    throw new Error(
+                        "Saqlashda xato yuz berdi: " + error.message
+                    );
+            }
+
+            // 🔥 Muvaffaqiyatli yakunlansa, Set ni bazadan qayta yuklaymiz (aniqlik uchun)
+            await fetchSavedTerms();
+        } catch (error) {
+            console.error("Amaliyot XATOSI:", error);
+            alert(`Amaliyot bajarilmadi: ${error.message}.`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const itemsToShow = searchedTerm ? [searchedTerm] : displayTerms;
     const showInitialLoader = loading && itemsToShow.length === 0;
 
+    // --- RENDER ---
     return (
         <div className={styles.page}>
-            {/* Headerga ikkita prop beramiz: Select (dropdown) va Search (enter) */}
             <Header onTermSelect={handleTermSelect} onSearch={handleSearch} />
 
             <CategoryFilter
@@ -277,7 +324,7 @@ const Home = () => {
                                         <span className="text-blue-600">
                                             "{searchQuery}"
                                         </span>{" "}
-                                        bo'yicha qidiruv natijalari
+                                        bo'yicha natijalar
                                     </>
                                 ) : activeCategory === "all" ? (
                                     "Barcha atamalar"
@@ -287,11 +334,7 @@ const Home = () => {
                                     )?.name || "Saralangan"
                                 )}
                             </h2>
-                            {!loading && (
-                                <span className="text-gray-500 text-sm">
-                                    {itemsToShow.length} ta ko'rsatilmoqda
-                                </span>
-                            )}
+                            {/* ... */}
                         </div>
 
                         {showInitialLoader ? (
@@ -303,6 +346,7 @@ const Home = () => {
                                 {itemsToShow.map((item) => (
                                     <TermCard
                                         key={item.id}
+                                        id={item.id}
                                         title={item.title}
                                         categories={item.categoriesList}
                                         definition={item.definition}
@@ -313,10 +357,12 @@ const Home = () => {
                                             searchedTerm &&
                                             searchedTerm.id === item.id
                                         }
+                                        // 🔥 YENGILANGAN PROPLAR
+                                        isSaved={savedTermIds.has(item.id)}
+                                        onToggleSave={handleToggleSave}
                                     />
                                 ))}
 
-                                {/* Load More Button: Faqat bitta atama tanlanmagan bo'lsa chiqadi */}
                                 {!searchedTerm && hasMore && (
                                     <button
                                         onClick={loadMore}
@@ -337,8 +383,8 @@ const Home = () => {
                             <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
                                 <p className="text-gray-500 text-lg">
                                     {searchQuery
-                                        ? "Bu so'z bo'yicha hech narsa topilmadi."
-                                        : "Bu kategoriyada atamalar mavjud emas."}
+                                        ? "Hech narsa topilmadi."
+                                        : "Atamalar mavjud emas."}
                                 </p>
                             </div>
                         )}

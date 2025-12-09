@@ -1,8 +1,9 @@
 import React from "react";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Bookmark } from "lucide-react"; // Bookmark qo'shildi
 import styles from "../../styles/termCard.module.css";
 
 const TermCard = ({
+    id, // ID kerak bo'ladi
     title,
     categories,
     definition,
@@ -11,8 +12,9 @@ const TermCard = ({
     article,
     style,
     isHighlighted,
+    isSaved, // 🔥 YANGI PROP: Saqlanganmi?
+    onToggleSave, // 🔥 YANGI PROP: Bosilganda ishlovchi funksiya
 }) => {
-    // Agar qidiruvdan tanlangan bo'lsa, qo'shimcha stil berish (sariq border)
     const cardStyle = {
         ...style,
         ...(isHighlighted
@@ -22,15 +24,25 @@ const TermCard = ({
 
     return (
         <div className={styles.card} style={cardStyle}>
+            {/* SAQLASH TUGMASI */}
+            <button
+                className={`${styles.saveBtn} ${isSaved ? styles.saved : ""}`}
+                onClick={(e) => {
+                    e.stopPropagation(); // Karta bosilganda modal ochilib ketmasligi uchun (agar bo'lsa)
+                    onToggleSave(id);
+                }}
+                title={isSaved ? "Saqlanganlardan olish" : "Saqlash"}>
+                {/* fill={isSaved ? "currentColor" : "none"} -> Ichini to'ldirish uchun */}
+                <Bookmark size={22} fill={isSaved ? "currentColor" : "none"} />
+            </button>
+
             <div className={styles.header}>
                 <h3 className={styles.title}>{title}</h3>
 
                 <div className={styles.badgesWrapper}>
-                    {/* XATOLIK TUZATILDI: cat mavjudligini tekshiramiz */}
                     {categories &&
                         categories.map((cat, index) => {
-                            if (!cat) return null; // Agar kategoriya bo'sh bo'lsa, o'tkazib yuboramiz
-
+                            if (!cat) return null;
                             return (
                                 <span key={index} className={styles.badge}>
                                     {cat.name}

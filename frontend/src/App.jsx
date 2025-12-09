@@ -7,28 +7,30 @@ import {
 } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 
-// Navigation
+// Navigation & Layouts
 import Navigation from "./components/home/Navigation";
-
-// Layouts
 import MainLayout from "./layouts/MainLayout";
+
+// Umumiy Komponentlar 🔥 YANGI IMPORT
+import LoadingSpinner from "./components/common/LoadingSpinner";
 
 // Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./pages/AdminDashboard"; // Bu endi Layout vazifasini bajaradi
+import AdminDashboard from "./pages/AdminDashboard";
 import Forum from "./pages/Forum";
 import Account from "./pages/Account";
 import QuestionDetail from "./pages/QuestionDetail";
+// 🔥 YANGI IMPORT
+import NotFound from "./pages/NotFound";
 
-// 🔥 YANGI ADMIN KOMPONENTLAR (Import yo'llarini o'zingizga moslang)
+// Admin Komponentlar
 import Messages from "./components/admin/Messages";
 import TermsManager from "./components/admin/TermsManager";
 import CategoriesManager from "./components/admin/CategoriesManager";
 import LawsManager from "./components/admin/LawsManager";
 
-// 🔥 YORDAMCHI KOMPONENT (Redirect uchun)
 const RedirectToAdmin = () => {
     useEffect(() => {
         window.location.href = "https://admin.legallens.uz";
@@ -38,16 +40,15 @@ const RedirectToAdmin = () => {
 
 function App() {
     const [session, setSession] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Dastlabki yuklanish
 
-    // 🔥 SUBDOMAIN TEKSHIRISH
     const hostname = window.location.hostname;
     const isAdminSubdomain = hostname.startsWith("admin.");
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            setLoading(false);
+            setLoading(false); // 🔥 Yuklanish tugadi
         });
 
         const {
@@ -59,29 +60,26 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    if (loading) return null;
+    // 🔥 GLOBAL LOADING
+    if (loading) return <LoadingSpinner />;
 
     // ---------------------------------------------------------
-    // 1️⃣ ADMIN PANEL (admin.localhost yoki admin.legallens.uz)
+    // 1️⃣ ADMIN PANEL
     // ---------------------------------------------------------
     if (isAdminSubdomain) {
         return (
             <Router>
                 <Routes>
-                    {/* Admin Login */}
                     <Route path="/login" element={<AdminLogin />} />
-
-                    {/* Admin Dashboard (Protected & Nested Routes) */}
                     <Route
                         path="/"
                         element={
                             session ? (
-                                <AdminDashboard /> // Bu yerda Sidebar va Outlet bor
+                                <AdminDashboard />
                             ) : (
                                 <Navigate to="/login" />
                             )
                         }>
-                        {/* 🔥 Ichki Routelar: admin.site.uz/terms, admin.site.uz/laws va h.k. */}
                         <Route
                             index
                             element={<Navigate to="messages" replace />}
@@ -94,7 +92,7 @@ function App() {
                         />
                         <Route path="laws" element={<LawsManager />} />
                     </Route>
-
+                    {/* Mavjud bo'lmagan admin route 404 ga o'tadi */}
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
             </Router>
@@ -102,14 +100,14 @@ function App() {
     }
 
     // ---------------------------------------------------------
-    // 2️⃣ ASOSIY SAYT (localhost yoki legallens.uz)
+    // 2️⃣ ASOSIY SAYT
     // ---------------------------------------------------------
     return (
         <Router>
             <Navigation />
             <Routes>
                 <Route path="/" element={<MainLayout session={session} />}>
-                    <Route index element={<Home />} />
+                    <Route index element={<Home session={session} />} />
                 </Route>
 
                 <Route path="/forum" element={<Forum session={session} />} />
@@ -134,6 +132,9 @@ function App() {
                 />
 
                 <Route path="/admin/*" element={<RedirectToAdmin />} />
+
+                {/* 🔥 404 Page (Barcha boshqa routelar uchun) */}
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </Router>
     );
