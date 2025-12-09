@@ -8,7 +8,7 @@ import {
 import { supabase } from "./supabaseClient";
 
 // Navigation
-import Navigation from "./components/Navigation";
+import Navigation from "./components/home/Navigation";
 
 // Layouts
 import MainLayout from "./layouts/MainLayout";
