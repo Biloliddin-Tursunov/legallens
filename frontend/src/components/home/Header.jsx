@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Scale, Search, X } from "lucide-react";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../supabaseClient";
 import styles from "../../styles/header.module.css";
 import Logo from "../../assets/logo.png";
 

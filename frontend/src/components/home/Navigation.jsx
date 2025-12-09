@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { supabase } from "../../../supabaseClient";
+import { supabase } from "../../supabaseClient";
 import { User, MessageSquare, LogIn, Home } from "lucide-react";
 import Logo from "../../assets/logo5.png";
 import styles from "../../styles/Navigation.module.css";
