@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import { User, MessageSquare, LogIn, Home } from "lucide-react";
 import Logo from "../../assets/logo5.png";
-import styles from "../../styles/Navigation.module.css";
+import styles from "../../styles/navigation.module.css";
 
 const Navigation = () => {
     const [session, setSession] = useState(null);
