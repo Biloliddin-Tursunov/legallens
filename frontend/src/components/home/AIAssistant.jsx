@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MessageSquare, Send, User, Phone } from "lucide-react";
-import { supabase } from "../supabaseClient";
-import styles from "../styles/aiAssistant.module.css";
+import { supabase } from "../../supabaseClient";
+import styles from "../../styles/aiAssistant.module.css";
 
 const AIAssistant = () => {
     const [formData, setFormData] = useState({

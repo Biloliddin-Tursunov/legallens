@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Scale, Search, X } from "lucide-react";
-import { supabase } from "../supabaseClient";
-import styles from "../styles/header.module.css";
-import Logo from "../assets/logo.png";
+import { supabase } from "../../../supabaseClient";
+import styles from "../../styles/header.module.css";
+import Logo from "../../assets/logo.png";
 
-const Header = ({ onTermSelect }) => {
+// onSearch propini ham qabul qilamiz
+const Header = ({ onTermSelect, onSearch }) => {
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -29,6 +30,12 @@ const Header = ({ onTermSelect }) => {
     const handleInputChange = (e) => {
         const value = e.target.value;
         setQuery(value);
+
+        // Agar input bo'shatilsa, qidiruvni ham tozalash uchun parentga signal beramiz
+        if (value.trim() === "") {
+            if (onSearch) onSearch(""); // Bo'sh qidiruv = hammasini ko'rsatish
+        }
+
         if (value.trim().length <= 1) {
             setSuggestions([]);
             setShowDropdown(false);
@@ -36,7 +43,7 @@ const Header = ({ onTermSelect }) => {
         }
     };
 
-    // Qidiruv effekti
+    // Qidiruv effekti (Dropdown uchun)
     useEffect(() => {
         if (query.trim().length <= 1) return;
         const timer = setTimeout(async () => {
@@ -52,6 +59,19 @@ const Header = ({ onTermSelect }) => {
         return () => clearTimeout(timer);
     }, [query]);
 
+    // 🔥 YANGI: Klaviaturadan foydalanish (Enter bosganda)
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            setShowDropdown(false); // Dropdownni yopamiz
+
+            // Agar onSearch funksiyasi berilgan bo'lsa, unga qidiruv so'zini jo'natamiz
+            if (onSearch) {
+                onSearch(query);
+            }
+        }
+    };
+
     const handleSelect = (term) => {
         setQuery(term.title);
         setShowDropdown(false);
@@ -64,17 +84,14 @@ const Header = ({ onTermSelect }) => {
         setSuggestions([]);
         setShowDropdown(false);
         if (onTermSelect) onTermSelect(null);
+        if (onSearch) onSearch(""); // Tozalaganda hammasini qaytarish
     };
 
     return (
         <div className={styles.header}>
             <div className={styles.container}>
-                {/* DIQQAT: Bu yerdan eski tugmalar olib tashlandi.
-                   Ular endi Navigation.jsx da!
-                */}
-
                 <div className={styles.iconWrapper}>
-                    <img src={Logo} className={styles.icon} />
+                    <img src={Logo} className={styles.icon} alt="Logo" />
                 </div>
 
                 <h1 className={styles.title}>Yuridik Lug'at va Atamalar</h1>
@@ -90,6 +107,7 @@ const Header = ({ onTermSelect }) => {
                         placeholder="Atamani qidiring..."
                         value={query}
                         onChange={handleInputChange}
+                        onKeyDown={handleKeyDown} // 🔥 Enter bosishni eshitish
                         onFocus={() =>
                             query.length > 1 &&
                             suggestions.length > 0 &&

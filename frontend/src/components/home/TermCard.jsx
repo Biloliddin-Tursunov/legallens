@@ -1,6 +1,6 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
-import styles from "../styles/termCard.module.css";
+import styles from "../../styles/termCard.module.css";
 
 const TermCard = ({
     title,

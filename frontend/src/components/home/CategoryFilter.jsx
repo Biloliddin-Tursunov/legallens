@@ -9,7 +9,7 @@ import {
     Home,
     Globe,
 } from "lucide-react";
-import styles from "../styles/categoryFilter.module.css";
+import styles from "../../styles/categoryFilter.module.css";
 
 // String nomlarni komponentga bog'lash
 const iconMap = {

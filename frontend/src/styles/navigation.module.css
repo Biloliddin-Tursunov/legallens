@@ -1,0 +1,138 @@
+/* src/components/Navigation.module.css */
+
+/* --- DESKTOP NAV --- */
+.desktopNav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9); /* Oqish, biroz shaffof fon */
+    backdrop-filter: blur(10px); /* Orqa fonni xiralashtirish */
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.innerContainer {
+    max-width: 1200px; /* Kontent juda kengayib ketmasligi uchun */
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logoBox {
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s;
+}
+.logoBox:hover {
+    opacity: 0.8;
+}
+
+.logoImage {
+    height: 40px; /* Logo balandligini cheklash */
+    width: auto;
+    object-fit: contain;
+}
+
+.navLinks {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Oddiy havolalar uchun (Forum) */
+.linkItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: #64748b;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.linkItem:hover,
+.linkItemActive {
+    color: #014b8a;
+    background-color: #f1f5f9;
+}
+
+/* Asosiy tugma uchun (Kirish/Kabinet) */
+.primaryBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    background: #014b8a; /* Sizning brend rangi */
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 0 4px 6px rgba(1, 75, 138, 0.2);
+    transition: all 0.2s ease;
+}
+
+.primaryBtn:hover {
+    background: #023e73;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 8px rgba(1, 75, 138, 0.25);
+}
+
+.primaryBtn:active {
+    transform: translateY(0);
+}
+
+/* --- MOBILE NAV (Bottom Bar) --- */
+.mobileNav {
+    display: none; /* Desktopda ko'rinmaydi */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #e2e8f0;
+    padding: 10px 0;
+    padding-bottom: env(safe-area-inset-bottom, 15px);
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.mobileItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    gap: 5px;
+    padding: 5px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    width: 70px;
+}
+
+.mobileItemActive {
+    color: #014b8a;
+    font-weight: 600;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+    .desktopNav {
+        display: none;
+    }
+    .mobileNav {
+        display: flex;
+    }
+}

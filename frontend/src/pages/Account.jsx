@@ -1,224 +1,179 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import { useNavigate, Link } from "react-router-dom";
-import { LogOut, User, Archive } from "lucide-react";
-// Agar css moduli kerak bo'lmasa, o'chirib tashlang yoki yo'lini to'g'rilang
-import styles from "../styles/forum.module.css";
+import styles from "../styles/account.module.css";
+
+// Komponentlar
+import ProfileHeader from "../components/account/ProfileHeader";
+import AccountTabs from "../components/account/AccountTabs";
+import MyQuestionsList from "../components/account/MyQuestionsList";
+import MyAnswersList from "../components/account/MyAnswersList";
+import SavedTermsList from "../components/account/SavedTermsList";
+import EditModal from "../components/account/EditModal";
 
 const Account = ({ session }) => {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
-    const [myQuestions, setMyQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("questions");
 
-    // Chiqish funksiyasi
+    // DATA
+    const [myQuestions, setMyQuestions] = useState([]);
+    const [myAnswers, setMyAnswers] = useState([]);
+    const [savedTerms, setSavedTerms] = useState([]);
+
+    // EDIT MODAL STATE
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null); // { id, title, body, type: 'question' | 'answer' }
+
+    // FETCH DATA
+    const fetchData = async () => {
+        if (!session?.user) return;
+        setLoading(true);
+
+        const tgId = session.user.user_metadata?.telegram_id;
+        if (tgId) {
+            // 1. User Profil
+            const { data: userData } = await supabase
+                .from("users")
+                .select("*")
+                .eq("telegram_id", tgId)
+                .maybeSingle();
+
+            if (userData) {
+                setProfile(userData);
+
+                // 2. Savollar
+                if (activeTab === "questions") {
+                    const { data } = await supabase
+                        .from("questions")
+                        .select("*")
+                        .eq("user_id", userData.id)
+                        .order("created_at", { ascending: false });
+                    setMyQuestions(data || []);
+                }
+
+                // 3. Javoblar (Relation bilan)
+                if (activeTab === "answers") {
+                    const { data } = await supabase
+                        .from("answers")
+                        .select("*, questions(title)")
+                        .eq("user_id", userData.id)
+                        .order("created_at", { ascending: false });
+                    setMyAnswers(data || []);
+                }
+
+                // 4. Saqlangan Atamalar
+                if (activeTab === "saved") {
+                    const { data } = await supabase
+                        .from("saved_terms")
+                        .select("id, terms(*)") // saved_terms IDsi va terms ma'lumotlari
+                        .eq("user_id", userData.id) // Auth user emas, public.users ID
+                        .order("created_at", { ascending: false });
+                    setSavedTerms(data || []);
+                }
+            }
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [session, activeTab]);
+
+    // ACTIONS
     const handleLogout = async () => {
         await supabase.auth.signOut();
         navigate("/");
     };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            if (session?.user) {
-                // 1. Telegram ID ni sessiyadan olamiz
-                const tgId = session.user.user_metadata?.telegram_id;
+    const handleDelete = async (id, table) => {
+        if (!window.confirm("Haqiqatan ham o'chirmoqchimisiz?")) return;
 
-                if (tgId) {
-                    // 2. Bazadan shu Telegram ID ga ega userni topamiz
-                    const { data: userData } = await supabase
-                        .from("users")
-                        .select("*")
-                        .eq("telegram_id", tgId)
-                        .maybeSingle();
+        const { error } = await supabase.from(table).delete().eq("id", id);
+        if (!error) fetchData();
+        else alert("Xatolik: " + error.message);
+    };
 
-                    if (userData) {
-                        setProfile(userData);
+    const handleEditOpen = (item, type) => {
+        setEditingItem({ ...item, type });
+        setIsEditModalOpen(true);
+    };
 
-                        // 3. 🔥 MUHIM: Savollarni Auth ID emas, Bazadagi ID (userData.id) orqali olamiz
-                        const { data: questions } = await supabase
-                            .from("questions")
-                            .select("*")
-                            .eq("user_id", userData.id) // <--- O'ZGARISH SHU YERDA
-                            .order("created_at", { ascending: false });
+    const handleSaveEdit = async (formData) => {
+        const table = editingItem.type === "question" ? "questions" : "answers";
+        const updateData = { body: formData.body };
 
-                        setMyQuestions(questions || []);
-                    }
-                }
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [session]);
+        if (editingItem.type === "question") {
+            updateData.title = formData.title;
+        }
 
-    if (loading)
+        const { error } = await supabase
+            .from(table)
+            .update(updateData)
+            .eq("id", editingItem.id);
+
+        if (!error) {
+            setIsEditModalOpen(false);
+            fetchData();
+        } else {
+            alert("Saqlashda xatolik: " + error.message);
+        }
+    };
+
+    if (loading && !profile) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    marginTop: "50px",
-                    fontSize: "1.2rem",
-                    color: "#666",
-                }}>
+            <div style={{ textAlign: "center", marginTop: "50px" }}>
                 Yuklanmoqda...
             </div>
         );
+    }
 
     return (
-        <div
-            style={{
-                backgroundColor: "#f8fafc",
-                minHeight: "100vh",
-                padding: "40px 20px",
-            }}>
-            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                {/* --- PROFIL QISMI --- */}
-                <div
-                    style={{
-                        background: "white",
-                        padding: "30px",
-                        borderRadius: "16px",
-                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
-                        marginBottom: "30px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        flexWrap: "wrap",
-                        gap: "20px",
-                    }}>
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "20px",
-                        }}>
-                        <div
-                            style={{
-                                width: "80px",
-                                height: "80px",
-                                background: "#e0f2fe",
-                                borderRadius: "50%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "#0284c7",
-                            }}>
-                            <User size={40} />
-                        </div>
-                        <div>
-                            <h1
-                                style={{
-                                    fontSize: "1.5rem",
-                                    margin: 0,
-                                    color: "#1e293b",
-                                }}>
-                                {profile?.first_name || "Foydalanuvchi"}
-                            </h1>
-                            <p style={{ color: "#64748b", marginTop: "5px" }}>
-                                {profile?.phone_number || "Telefon raqam yo'q"}
-                            </p>
-                        </div>
-                    </div>
+        <div className={styles.page}>
+            <div className={styles.container}>
+                <ProfileHeader profile={profile} onLogout={handleLogout} />
 
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            padding: "12px 24px",
-                            background: "#fee2e2",
-                            color: "#ef4444",
-                            border: "none",
-                            borderRadius: "8px",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            fontSize: "0.95rem",
-                        }}>
-                        <LogOut size={18} /> Chiqish
-                    </button>
-                </div>
+                <AccountTabs
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                />
 
-                {/* --- MENING SAVOLLARIM --- */}
-                <h2
-                    style={{
-                        marginBottom: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        color: "#334155",
-                    }}>
-                    <Archive size={24} /> Mening Savollarim
-                </h2>
+                {activeTab === "questions" && (
+                    <MyQuestionsList
+                        questions={myQuestions}
+                        onEdit={(item) => handleEditOpen(item, "question")}
+                        onDelete={(id) => handleDelete(id, "questions")}
+                    />
+                )}
 
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "15px",
-                    }}>
-                    {myQuestions.length === 0 ? (
-                        <p
-                            style={{
-                                color: "#64748b",
-                                textAlign: "center",
-                                padding: "20px",
-                                background: "white",
-                                borderRadius: "12px",
-                            }}>
-                            Siz hali savol bermagansiz.
-                        </p>
-                    ) : (
-                        myQuestions.map((q) => (
-                            <div
-                                key={q.id}
-                                style={{
-                                    background: "white",
-                                    padding: "20px",
-                                    borderRadius: "12px",
-                                    border: "1px solid #e2e8f0",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                                }}>
-                                <Link
-                                    to={`/forum/${q.id}`}
-                                    style={{
-                                        textDecoration: "none",
-                                        color: "#1e293b",
-                                    }}>
-                                    <h3
-                                        style={{
-                                            margin: "0 0 8px 0",
-                                            fontSize: "1.15rem",
-                                        }}>
-                                        {q.title}
-                                    </h3>
-                                </Link>
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        fontSize: "0.85rem",
-                                        color: "#94a3b8",
-                                    }}>
-                                    <span>
-                                        {new Date(
-                                            q.created_at
-                                        ).toLocaleDateString()}
-                                    </span>
-                                    <Link
-                                        to={`/forum/${q.id}`}
-                                        style={{
-                                            color: "#3b82f6",
-                                            textDecoration: "none",
-                                        }}>
-                                        Ko'rish &rarr;
-                                    </Link>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
+                {activeTab === "answers" && (
+                    <MyAnswersList
+                        answers={myAnswers}
+                        onEdit={(item) => handleEditOpen(item, "answer")}
+                        onDelete={(id) => handleDelete(id, "answers")}
+                    />
+                )}
+
+                {activeTab === "saved" && (
+                    <SavedTermsList
+                        savedTerms={savedTerms}
+                        onRemove={(id) => handleDelete(id, "saved_terms")}
+                    />
+                )}
             </div>
+
+            <EditModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                initialData={editingItem || {}}
+                onSave={handleSaveEdit}
+                title={
+                    editingItem?.type === "question"
+                        ? "Savolni tahrirlash"
+                        : "Javobni tahrirlash"
+                }
+            />
         </div>
     );
 };

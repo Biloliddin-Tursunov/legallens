@@ -1,277 +1,142 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
-import { ArrowLeft, MessageCircle, Send } from "lucide-react";
-import styles from "../styles/forum.module.css"; // Stilni qayta ishlatamiz
+import { ArrowLeft, MessageCircle, User } from "lucide-react";
+import styles from "../styles/forum.module.css";
+
+// Komponentlar
+import AnswerItem from "../components/forum/AnswerItem";
+import AnswerForm from "../components/forum/AnswerForm";
 
 const QuestionDetail = ({ session }) => {
     const { id } = useParams();
     const [question, setQuestion] = useState(null);
     const [answers, setAnswers] = useState([]);
-    const [newAnswer, setNewAnswer] = useState("");
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
-            // Savol
             const { data: q } = await supabase
                 .from("questions")
                 .select("*")
                 .eq("id", id)
                 .single();
             setQuestion(q);
-            // Javoblar
-            const { data: a } = await supabase
-                .from("answers")
-                .select("*")
-                .eq("question_id", id)
-                .order("created_at", { ascending: true });
-            setAnswers(a || []);
+            if (q) fetchAnswers();
             setLoading(false);
         };
         fetchData();
     }, [id]);
 
-    const handleAnswer = async (e) => {
-        e.preventDefault();
-        if (!session) return alert("Javob berish uchun kiring!");
-        if (!newAnswer.trim()) return;
-
-        setSubmitting(true);
-        // User ismi
-        const tgId = session.user.user_metadata.telegram_id;
-        const { data: userData } = await supabase
-            .from("users")
-            .select("first_name")
-            .eq("telegram_id", tgId)
-            .single();
-
-        const { error } = await supabase.from("answers").insert({
-            question_id: id,
-            user_id: session.user.id,
-            author_name: userData?.first_name || "Foydalanuvchi",
-            body: newAnswer,
-        });
-
-        if (!error) {
-            setNewAnswer("");
-            // Javoblarni yangilash
-            const { data: a } = await supabase
-                .from("answers")
-                .select("*")
-                .eq("question_id", id)
-                .order("created_at", { ascending: true });
-            setAnswers(a);
-        }
-        setSubmitting(false);
+    const fetchAnswers = async () => {
+        const { data: a } = await supabase
+            .from("answers")
+            .select("*")
+            .eq("question_id", id)
+            .order("created_at", { ascending: true });
+        setAnswers(a || []);
     };
 
-    if (loading)
-        return (
-            <div style={{ padding: "50px", textAlign: "center" }}>
-                Yuklanmoqda...
-            </div>
-        );
+    const handleAnswerSubmit = async (answerText, onSuccess) => {
+        setSubmitting(true);
+        try {
+            const tgId = session.user.user_metadata?.telegram_id;
+            const { data: userData, error: userError } = await supabase
+                .from("users")
+                .select("id, first_name")
+                .eq("telegram_id", tgId)
+                .single();
+
+            if (userError || !userData) {
+                alert("Foydalanuvchi bazada topilmadi. Qayta kiring.");
+                setSubmitting(false);
+                return;
+            }
+
+            const { error } = await supabase.from("answers").insert({
+                question_id: id,
+                user_id: userData.id,
+                author_name: userData.first_name || "Foydalanuvchi",
+                body: answerText,
+            });
+
+            if (error) {
+                alert("Xatolik: " + error.message);
+            } else {
+                fetchAnswers();
+                onSuccess(); // Inputni tozalash
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (loading) return <div className="text-center p-10">Yuklanmoqda...</div>;
     if (!question)
-        return (
-            <div style={{ padding: "50px", textAlign: "center" }}>
-                Savol topilmadi
-            </div>
-        );
+        return <div className="text-center p-10">Savol topilmadi</div>;
 
     return (
-        <div
-            style={{
-                backgroundColor: "#f8fafc",
-                minHeight: "100vh",
-                padding: "20px",
-            }}>
-            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-                <Link
-                    to="/forum"
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        color: "#64748b",
-                        textDecoration: "none",
-                        marginBottom: "20px",
-                        fontWeight: "500",
-                    }}>
-                    <ArrowLeft size={18} /> Orqaga
+        <div className={styles.page}>
+            <div className={styles.container} style={{ maxWidth: "900px" }}>
+                <Link to="/forum" className={styles.backLink}>
+                    <ArrowLeft size={18} /> Forumga qaytish
                 </Link>
 
                 {/* SAVOL */}
-                <div
-                    style={{
-                        background: "white",
-                        padding: "30px",
-                        borderRadius: "12px",
-                        border: "1px solid #e2e8f0",
-                        marginBottom: "30px",
-                    }}>
-                    <h1
-                        style={{
-                            fontSize: "1.8rem",
-                            color: "#1e293b",
-                            marginBottom: "15px",
-                        }}>
-                        {question.title}
-                    </h1>
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            color: "#64748b",
-                            fontSize: "0.9rem",
-                            marginBottom: "20px",
-                            paddingBottom: "15px",
-                            borderBottom: "1px solid #f1f5f9",
-                        }}>
-                        <span style={{ fontWeight: "bold", color: "#3b82f6" }}>
-                            {question.author_name}
-                        </span>
-                        <span>
-                            {new Date(question.created_at).toLocaleDateString()}
-                        </span>
+                <div className={styles.detailCard}>
+                    <div className={styles.cardHeader}>
+                        <div className={styles.answerAuthorBadge}>
+                            <div
+                                className={styles.avatarPlaceholder}
+                                style={{
+                                    background: "#e0f2fe",
+                                    color: "#0284c7",
+                                }}>
+                                <User size={20} />
+                            </div>
+                            <div>
+                                <span className="font-bold text-slate-700 block">
+                                    {question.author_name}
+                                </span>
+                                <span className="text-xs text-slate-400">
+                                    {new Date(
+                                        question.created_at
+                                    ).toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <p
-                        style={{
-                            fontSize: "1.1rem",
-                            lineHeight: "1.6",
-                            color: "#334155",
-                            whiteSpace: "pre-wrap",
-                        }}>
-                        {question.body}
-                    </p>
+                    <h1 className={styles.detailTitle}>{question.title}</h1>
+                    <div className={styles.detailBody}>{question.body}</div>
                 </div>
 
                 {/* JAVOBLAR */}
-                <h3
-                    style={{
-                        marginBottom: "20px",
-                        color: "#1e293b",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                    }}>
-                    <MessageCircle size={20} /> Javoblar ({answers.length})
-                </h3>
+                <div className={styles.answersSection}>
+                    <h3 className={styles.answersTitle}>
+                        <MessageCircle className="text-blue-500" />
+                        Javoblar ({answers.length})
+                    </h3>
 
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "15px",
-                        marginBottom: "40px",
-                    }}>
-                    {answers.map((ans) => (
-                        <div
-                            key={ans.id}
-                            style={{
-                                background: "white",
-                                padding: "20px",
-                                borderRadius: "8px",
-                                border: "1px solid #e2e8f0",
-                            }}>
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    marginBottom: "10px",
-                                    fontSize: "0.85rem",
-                                }}>
-                                <span
-                                    style={{
-                                        fontWeight: "bold",
-                                        color: "#475569",
-                                    }}>
-                                    {ans.author_name}
-                                </span>
-                                <span style={{ color: "#94a3b8" }}>
-                                    {new Date(ans.created_at).toLocaleString()}
-                                </span>
-                            </div>
-                            <p style={{ color: "#1e293b", lineHeight: "1.5" }}>
-                                {ans.body}
-                            </p>
+                    {answers.length === 0 ? (
+                        <div className="text-center py-10 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400 mb-10">
+                            Hali hech kim javob bermagan. Birinchi bo'ling!
                         </div>
-                    ))}
-                    {answers.length === 0 && (
-                        <p style={{ color: "#94a3b8", fontStyle: "italic" }}>
-                            Hali hech kim javob bermagan.
-                        </p>
+                    ) : (
+                        answers.map((ans) => (
+                            <AnswerItem key={ans.id} answer={ans} />
+                        ))
                     )}
                 </div>
 
-                {/* JAVOB YOZISH FORMASI */}
-                {session ? (
-                    <form
-                        onSubmit={handleAnswer}
-                        style={{
-                            background: "white",
-                            padding: "20px",
-                            borderRadius: "12px",
-                            border: "1px solid #e2e8f0",
-                            position: "sticky",
-                            bottom: "20px",
-                            boxShadow: "0 -4px 20px rgba(0,0,0,0.05)",
-                        }}>
-                        <h4 style={{ marginBottom: "10px", color: "#1e293b" }}>
-                            Javob yozish
-                        </h4>
-                        <div style={{ display: "flex", gap: "10px" }}>
-                            <textarea
-                                value={newAnswer}
-                                onChange={(e) => setNewAnswer(e.target.value)}
-                                placeholder="Fikringizni yozing..."
-                                required
-                                style={{
-                                    flex: 1,
-                                    padding: "12px",
-                                    borderRadius: "8px",
-                                    border: "1px solid #cbd5e1",
-                                    minHeight: "50px",
-                                    resize: "vertical",
-                                }}
-                            />
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                style={{
-                                    background: "#3b82f6",
-                                    color: "white",
-                                    border: "none",
-                                    borderRadius: "8px",
-                                    width: "50px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}>
-                                <Send size={20} />
-                            </button>
-                        </div>
-                    </form>
-                ) : (
-                    <div
-                        style={{
-                            textAlign: "center",
-                            padding: "20px",
-                            background: "#e0f2fe",
-                            borderRadius: "8px",
-                            color: "#0369a1",
-                        }}>
-                        Javob yozish uchun{" "}
-                        <Link
-                            to="/login"
-                            style={{ fontWeight: "bold", color: "inherit" }}>
-                            tizimga kiring
-                        </Link>
-                        .
-                    </div>
-                )}
+                {/* FORM */}
+                <AnswerForm
+                    session={session}
+                    onSubmit={handleAnswerSubmit}
+                    submitting={submitting}
+                />
             </div>
         </div>
     );

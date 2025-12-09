@@ -37,3 +37,9 @@ h4,
 p {
     margin: 0;
 }
+@media (max-width: 768px) {
+    /* Barcha sahifalarning pastki qismidan joy ochish */
+    body {
+        padding-bottom: 90px;
+    }
+}
