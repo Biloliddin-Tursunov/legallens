@@ -85,12 +85,13 @@ const AppContent = () => {
                                 <Navigate to="/login" />
                             )
                         }>
+                        <Route element={<Navigate to="messages" replace />} />
+                        <Route path="messages" element={<Messages />} />
                         <Route
                             index
-                            element={<Navigate to="messages" replace />}
+                            path="statistics"
+                            element={<Statistics />}
                         />
-                        <Route path="messages" element={<Messages />} />
-                        <Route path="statistics" element={<Statistics />} />
                         <Route path="terms" element={<TermsManager />} />
                         <Route
                             path="categories"
