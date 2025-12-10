@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import { supabase } from "../supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     LockKeyhole,
     Send,
     Loader2,
     CheckCircle,
     AlertCircle,
+    ArrowLeft,
 } from "lucide-react";
 import styles from "../styles/login.module.css";
 
@@ -102,6 +103,10 @@ const Login = () => {
 
     return (
         <div className={styles.container}>
+            <Link to="/" className={styles.backButton}>
+                <ArrowLeft size={20} />
+                Bosh sahifaga qaytish
+            </Link>
             <div className={styles.card}>
                 {/* Header */}
                 <div className={styles.header}>

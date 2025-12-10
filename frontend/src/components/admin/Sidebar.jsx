@@ -8,8 +8,8 @@ import {
     Book,
     Layers,
     FileText,
+    BarChart2,
 } from "lucide-react";
-import styles from "../../styles/adminDashboard.module.css";
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -22,6 +22,10 @@ const Sidebar = () => {
     // 🔥 MUHIM: Subdomenda ishlaganimiz uchun yo'llar "/" dan boshlanishi shart.
     // "/admin/messages" EMAS, balki shunchaki "/messages"
     const navItems = [
+        // 🔥 Yangi qo'shilgan qator:
+        { path: "/statistics", icon: BarChart2, label: "Statistika" },
+
+        // Eski qatorlar o'z o'rnida qolsin:
         { path: "/messages", icon: MessageSquare, label: "Xabarlar" },
         { path: "/terms", icon: FileText, label: "Atamalar" },
         { path: "/categories", icon: Layers, label: "Kategoriyalar" },
@@ -56,3 +60,5 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+import styles from "../../styles/adminDashboard.module.css";

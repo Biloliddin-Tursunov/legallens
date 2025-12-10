@@ -4,15 +4,18 @@ import {
     Routes,
     Route,
     Navigate,
+    useLocation,
 } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+import { AnimatePresence } from "framer-motion";
 
 // Navigation & Layouts
 import Navigation from "./components/home/Navigation";
 import MainLayout from "./layouts/MainLayout";
 
-// Umumiy Komponentlar 🔥 YANGI IMPORT
+// Umumiy Komponentlar
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import PageTransition from "./components/common/PageTransition";
 
 // Pages
 import Home from "./pages/Home";
@@ -22,7 +25,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import Forum from "./pages/Forum";
 import Account from "./pages/Account";
 import QuestionDetail from "./pages/QuestionDetail";
-// 🔥 YANGI IMPORT
 import NotFound from "./pages/NotFound";
 
 // Admin Komponentlar
@@ -30,6 +32,8 @@ import Messages from "./components/admin/Messages";
 import TermsManager from "./components/admin/TermsManager";
 import CategoriesManager from "./components/admin/CategoriesManager";
 import LawsManager from "./components/admin/LawsManager";
+import VisitTracker from "./components/common/VisitTracker";
+import Statistics from "./components/admin/Statistics";
 
 const RedirectToAdmin = () => {
     useEffect(() => {
@@ -38,17 +42,20 @@ const RedirectToAdmin = () => {
     return null;
 };
 
-function App() {
+// 🔥 YANGI: Asosiy mantiqni alohida komponentga olamiz
+// Bu komponent <Router> ichida bo'lgani uchun useLocation() ni ishlata oladi.
+const AppContent = () => {
     const [session, setSession] = useState(null);
-    const [loading, setLoading] = useState(true); // Dastlabki yuklanish
+    const [loading, setLoading] = useState(true);
 
     const hostname = window.location.hostname;
     const isAdminSubdomain = hostname.startsWith("admin.");
+    const location = useLocation(); // 🔥 Endi bu xato bermaydi
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            setLoading(false); // 🔥 Yuklanish tugadi
+            setLoading(false);
         });
 
         const {
@@ -60,7 +67,6 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    // 🔥 GLOBAL LOADING
     if (loading) return <LoadingSpinner />;
 
     // ---------------------------------------------------------
@@ -68,8 +74,8 @@ function App() {
     // ---------------------------------------------------------
     if (isAdminSubdomain) {
         return (
-            <Router>
-                <Routes>
+            <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
                     <Route path="/login" element={<AdminLogin />} />
                     <Route
                         path="/"
@@ -85,6 +91,7 @@ function App() {
                             element={<Navigate to="messages" replace />}
                         />
                         <Route path="messages" element={<Messages />} />
+                        <Route path="statistics" element={<Statistics />} />
                         <Route path="terms" element={<TermsManager />} />
                         <Route
                             path="categories"
@@ -92,10 +99,9 @@ function App() {
                         />
                         <Route path="laws" element={<LawsManager />} />
                     </Route>
-                    {/* Mavjud bo'lmagan admin route 404 ga o'tadi */}
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
-            </Router>
+            </AnimatePresence>
         );
     }
 
@@ -103,39 +109,87 @@ function App() {
     // 2️⃣ ASOSIY SAYT
     // ---------------------------------------------------------
     return (
-        <Router>
+        <>
             <Navigation />
-            <Routes>
-                <Route path="/" element={<MainLayout session={session} />}>
-                    <Route index element={<Home session={session} />} />
-                </Route>
+            <AnimatePresence mode="wait">
+                {/* location va key har bir sahifa o'zgarishini animatsiya qilish uchun kerak */}
+                <Routes location={location} key={location.pathname}>
+                    <Route path="/" element={<MainLayout session={session} />}>
+                        <Route
+                            index
+                            element={
+                                <PageTransition>
+                                    <Home session={session} />
+                                </PageTransition>
+                            }
+                        />
+                    </Route>
 
-                <Route path="/forum" element={<Forum session={session} />} />
-                <Route
-                    path="/forum/:id"
-                    element={<QuestionDetail session={session} />}
-                />
+                    <Route
+                        path="/forum"
+                        element={
+                            <PageTransition>
+                                <Forum session={session} />
+                            </PageTransition>
+                        }
+                    />
+                    <Route
+                        path="/forum/:id"
+                        element={
+                            <PageTransition>
+                                <QuestionDetail session={session} />
+                            </PageTransition>
+                        }
+                    />
 
-                <Route
-                    path="/login"
-                    element={session ? <Navigate to="/account" /> : <Login />}
-                />
-                <Route
-                    path="/account"
-                    element={
-                        session ? (
-                            <Account session={session} />
-                        ) : (
-                            <Navigate to="/login" />
-                        )
-                    }
-                />
+                    <Route
+                        path="/login"
+                        element={
+                            <PageTransition>
+                                {session ? (
+                                    <Navigate to="/account" />
+                                ) : (
+                                    <Login />
+                                )}
+                            </PageTransition>
+                        }
+                    />
+                    <Route
+                        path="/account"
+                        element={
+                            <PageTransition>
+                                {session ? (
+                                    <Account session={session} />
+                                ) : (
+                                    <Navigate to="/login" />
+                                )}
+                            </PageTransition>
+                        }
+                    />
 
-                <Route path="/admin/*" element={<RedirectToAdmin />} />
+                    <Route path="/admin/*" element={<RedirectToAdmin />} />
 
-                {/* 🔥 404 Page (Barcha boshqa routelar uchun) */}
-                <Route path="*" element={<NotFound />} />
-            </Routes>
+                    <Route
+                        path="*"
+                        element={
+                            <PageTransition>
+                                <NotFound />
+                            </PageTransition>
+                        }
+                    />
+                </Routes>
+            </AnimatePresence>
+        </>
+    );
+};
+
+// 🔥 ASOSIY APP KOMPONENTI
+// Router ni shu yerda e'lon qilamiz, shunda ichkaridagi AppContent useLocation ni ishlata oladi.
+function App() {
+    return (
+        <Router>
+            <VisitTracker />
+            <AppContent />
         </Router>
     );
 }
