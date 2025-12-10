@@ -1,66 +1,255 @@
-// src/components/admin/Statistics.jsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../supabaseClient";
+import { motion } from "framer-motion";
 import {
-    BarChart,
+    AreaChart,
+    Area,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    AreaChart,
-    Area,
+    BarChart,
+    Bar,
 } from "recharts";
 import {
     Users,
     FileText,
     MessageSquare,
     Activity,
-    Globe,
-    Smartphone,
-    Clock,
-    UserCheck,
-    UserX,
     ChevronDown,
+    ChevronUp,
 } from "lucide-react";
 import styles from "../../styles/statistics.module.css";
 
+// --- 1. YORDAMCHI FUNKSIYALAR ---
+
+// Kunlik ma'lumotlarni (masalan, so'nggi 7 kun) guruhlash uchun
+const groupDataByDay = (data, dateKey, countKey) => {
+    const days = {};
+    const today = new Date();
+
+    // So'nggi 7 kunni yaratish
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toLocaleDateString("uz-UZ", {
+            day: "2-digit",
+            month: "short",
+        });
+        days[dateStr] = 0;
+    }
+
+    // Ma'lumotlarni guruhlash
+    data.forEach((item) => {
+        const date = new Date(item[dateKey]).toLocaleDateString("uz-UZ", {
+            day: "2-digit",
+            month: "short",
+        });
+        if (days.hasOwnProperty(date)) {
+            days[date] = (days[date] || 0) + 1;
+        }
+    });
+
+    return Object.keys(days).map((key) => ({
+        [dateKey]: key,
+        [countKey]: days[key],
+    }));
+};
+
+// --- 2. DETAL KOMPONENTLARI (Dinamik data bilan) ---
+
+const UserDetail = ({ dailyUsers }) => (
+    <div className={styles.detailChartBox}>
+        <h5 className={styles.chartTitle}>
+            Ro'yxatdan O'tish Dinamikasi (So'nggi 7 kun)
+        </h5>
+        <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={dailyUsers}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                <XAxis dataKey="created_at" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3b82f6"
+                    fill="#eff6ff"
+                />
+            </AreaChart>
+        </ResponsiveContainer>
+    </div>
+);
+
+const TermsDetail = ({ dailyTerms }) => (
+    <div className={styles.detailChartBox}>
+        <h5 className={styles.chartTitle}>
+            Yangi Atamalar Kiritish (So'nggi 7 kun)
+        </h5>
+        <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={dailyTerms}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                <XAxis dataKey="created_at" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#10b981" />
+            </BarChart>
+        </ResponsiveContainer>
+    </div>
+);
+
+const ForumDetail = ({ questionsCount, dailyQuestions }) => (
+    <div className={styles.detailGrid}>
+        <div className={styles.detailChartBox} style={{ gridColumn: "span 1" }}>
+            <h5 className={styles.chartTitle}>Jami Savollar Soni</h5>
+            <p className={styles.detailTextLarge} style={{ color: "#d97706" }}>
+                **{questionsCount}**
+            </p>
+            <p className={styles.detailText}>Forum faoliyatini kuzatish.</p>
+        </div>
+        <div className={styles.detailChartBox} style={{ gridColumn: "span 2" }}>
+            <h5 className={styles.chartTitle}>Savollar Berish Dinamikasi</h5>
+            <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={dailyQuestions}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                    <XAxis dataKey="created_at" />
+                    <YAxis allowDecimals={false} />
+                    <Tooltip />
+                    <Area
+                        type="monotone"
+                        dataKey="count"
+                        stroke="#f59e0b"
+                        fill="#fef3c7"
+                    />
+                </AreaChart>
+            </ResponsiveContainer>
+        </div>
+    </div>
+);
+
+const VisitDetail = ({ dailyVisits }) => (
+    <div className={styles.detailChartBox}>
+        <h5 className={styles.chartTitle}>Sayt Tashriflari Dinamikasi</h5>
+        <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={dailyVisits}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.4} />
+                <XAxis dataKey="created_at" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#4b5563"
+                    fill="#f3f4f6"
+                />
+            </AreaChart>
+        </ResponsiveContainer>
+    </div>
+);
+
+// --- 3. KPI KART KOMPONENTI (ANIMATSIYALI) ---
+const KpiCard = ({
+    icon: Icon,
+    label,
+    value,
+    color,
+    onClick,
+    isExpanded,
+    id,
+    children,
+}) => {
+    const stylesMap = {
+        blue: { bg: "#eff6ff", text: "#3b82f6" },
+        green: { bg: "#f0fdf4", text: "#10b981" },
+        orange: { bg: "#fef3c7", text: "#d97706" },
+        gray: { bg: "#f3f4f6", text: "#4b5563" },
+    };
+    const style = stylesMap[color];
+
+    return (
+        <motion.div
+            layout
+            onClick={() => onClick(id)}
+            className={styles.kpiCard}
+            style={{ borderColor: isExpanded ? style.text : "#e2e8f0" }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}>
+            <div className={styles.cardHeaderFlex}>
+                <div
+                    className={styles.kpiIconBox}
+                    style={{ background: style.bg, color: style.text }}>
+                    <Icon size={24} />
+                </div>
+                <div className={styles.kpiContent}>
+                    <p className={styles.kpiLabel}>{label}</p>
+                    <h3 className={styles.kpiValue}>{value}</h3>
+                </div>
+                <div
+                    className={styles.expandIcon}
+                    style={{ color: style.text }}>
+                    <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}>
+                        {isExpanded ? (
+                            <ChevronUp size={24} />
+                        ) : (
+                            <ChevronDown size={24} />
+                        )}
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* EXPANDED CONTENT */}
+            {isExpanded && (
+                <motion.div
+                    layout
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ type: "tween", duration: 0.3 }}
+                    className={styles.expandedContent}>
+                    <div className={styles.cardHeader}>
+                        <h4 style={{ color: style.text }}>
+                            {label} haqida Batafsil
+                        </h4>
+                    </div>
+
+                    {children}
+                </motion.div>
+            )}
+        </motion.div>
+    );
+};
+
+// --- 4. ASOSIY STATISTIKA KOMPONENTI ---
 const Statistics = () => {
-    // 1. KPI Statistikalar
+    // KPI Data (Sanash uchun)
     const [counts, setCounts] = useState({
         users: 0,
         terms: 0,
         questions: 0,
         visits: 0,
     });
+    // Charts Data (Detallar uchun)
+    const [dailyStats, setDailyStats] = useState({
+        users: [],
+        terms: [],
+        questions: [],
+        visits: [],
+    });
 
-    // 2. Grafiklarni chizish uchun ma'lumotlar
-    const [deviceStats, setDeviceStats] = useState([]);
-    const [dailyStats, setDailyStats] = useState([]);
-
-    // 3. Jadval (Logs) va "Yana yuklash" logikasi
-    const [visitLogs, setVisitLogs] = useState([]); // Ekranda ko'rinadigan ro'yxat
-    const [page, setPage] = useState(0); // Hozirgi sahifa (0 dan boshlanadi)
-    const [hasMore, setHasMore] = useState(true); // Yana ma'lumot bormi?
-    const [loadingLogs, setLoadingLogs] = useState(false); // Tugma bosilganda loading
-    const LOGS_PER_PAGE = 30; // Har safar nechtadan yuklash
-
-    const [loading, setLoading] = useState(true); // Umumiy sahifa yuklanishi
+    const [loading, setLoading] = useState(true);
+    const [expandedCard, setExpandedCard] = useState(null);
 
     useEffect(() => {
-        fetchInitialData();
+        fetchDynamicStats();
     }, []);
 
-    const fetchInitialData = async () => {
+    const fetchDynamicStats = async () => {
         try {
             setLoading(true);
 
-            // --- A) KPI SONLARINI OLISH ---
-            const [usersData, termsData, forumData, visitsData] =
+            // 1. KPI SONLARINI OLISH
+            const [usersCount, termsCount, forumCount, visitsCount] =
                 await Promise.all([
                     supabase
                         .from("users")
@@ -68,7 +257,7 @@ const Statistics = () => {
                     supabase
                         .from("terms")
                         .select("*", { count: "exact", head: true }),
-                    // ⚠️ DIQQAT: Jadval nomingiz 'forum_questions' ekanligiga ishonch hosil qiling
+                    // 🔥 Forum jadvali nomi 'questions' deb o'rnatildi
                     supabase
                         .from("questions")
                         .select("*", { count: "exact", head: true }),
@@ -78,87 +267,78 @@ const Statistics = () => {
                 ]);
 
             setCounts({
-                users: usersData.count || 0,
-                terms: termsData.count || 0,
-                questions: forumData.count || 0,
-                visits: visitsData.count || 0,
+                users: usersCount.count || 0,
+                terms: termsCount.count || 0,
+                questions: forumCount.count || 0,
+                visits: visitsCount.count || 0,
             });
 
-            // --- B) GRAFIKLAR UCHUN STATISTIKA (So'nggi 100 ta asosida) ---
-            const { data: chartData } = await supabase
-                .from("site_visits")
-                .select("device_type, created_at")
-                .order("created_at", { ascending: false })
-                .limit(100);
+            // 2. DETAL GRAFIKLAR UCHUN MA'LUMOTLARNI OLISH (So'nggi 7 kun)
+            const daysAgo = new Date();
+            daysAgo.setDate(daysAgo.getDate() - 7);
+            const sevenDaysAgoISO = daysAgo.toISOString();
 
-            if (chartData) {
-                processChartData(chartData);
-            }
+            const [userLog, termLog, questionLog, visitLog] = await Promise.all(
+                [
+                    supabase
+                        .from("users")
+                        .select("created_at")
+                        .gte("created_at", sevenDaysAgoISO),
+                    supabase
+                        .from("terms")
+                        .select("created_at")
+                        .gte("created_at", sevenDaysAgoISO),
+                    supabase
+                        .from("questions")
+                        .select("created_at")
+                        .gte("created_at", sevenDaysAgoISO),
+                    supabase
+                        .from("site_visits")
+                        .select("created_at")
+                        .gte("created_at", sevenDaysAgoISO),
+                ]
+            );
 
-            // --- C) JADVAL UCHUN ILK 30 TA ---
-            await fetchMoreLogs(0); // 0-sahifani yuklaymiz
+            // 3. MA'LUMOTLARNI KUN BO'YICHA GURUHLASH
+            setDailyStats({
+                users: groupDataByDay(
+                    userLog.data || [],
+                    "created_at",
+                    "count"
+                ),
+                terms: groupDataByDay(
+                    termLog.data || [],
+                    "created_at",
+                    "count"
+                ),
+                questions: groupDataByDay(
+                    questionLog.data || [],
+                    "created_at",
+                    "count"
+                ),
+                visits: groupDataByDay(
+                    visitLog.data || [],
+                    "created_at",
+                    "count"
+                ),
+            });
         } catch (error) {
-            console.error("Ma'lumotlarni yuklashda xato:", error);
+            console.error("Dinamik ma'lumotlarni yuklashda xato:", error);
+            // Agar bazaga ulanishda xato bo'lsa, statik 0 ko'rsatsin, ochib qolmasin
+            setCounts({
+                users: "Xato",
+                terms: "Xato",
+                questions: "Xato",
+                visits: "Xato",
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    // Jadvalga ma'lumot qo'shish funksiyasi
-    const fetchMoreLogs = async (pageNumber) => {
-        setLoadingLogs(true);
-        const from = pageNumber * LOGS_PER_PAGE;
-        const to = from + LOGS_PER_PAGE - 1;
-
-        const { data, error } = await supabase
-            .from("site_visits")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .range(from, to);
-
-        if (!error && data) {
-            if (data.length < LOGS_PER_PAGE) {
-                setHasMore(false); // Agar 30 tadan kam kelsa, demak tugadi
-            }
-
-            // Agar 0-sahifa bo'lsa yangilaymiz, aks holda eskisiga qo'shamiz
-            setVisitLogs((prev) =>
-                pageNumber === 0 ? data : [...prev, ...data]
-            );
-            setPage(pageNumber);
-        }
-        setLoadingLogs(false);
+    const handleCardClick = (id) => {
+        setExpandedCard(expandedCard === id ? null : id);
     };
-
-    const processChartData = (data) => {
-        // Qurilmalar
-        const devices = {};
-        data.forEach((item) => {
-            const type = item.device_type || "Noma'lum";
-            devices[type] = (devices[type] || 0) + 1;
-        });
-        setDeviceStats(
-            Object.keys(devices).map((key) => ({
-                name: key,
-                value: devices[key],
-            }))
-        );
-
-        // Kunlik tashriflar
-        const days = {};
-        [...data].reverse().forEach((item) => {
-            const date = new Date(item.created_at).toLocaleDateString("uz-UZ", {
-                day: "2-digit",
-                month: "short",
-            });
-            days[date] = (days[date] || 0) + 1;
-        });
-        setDailyStats(
-            Object.keys(days).map((key) => ({ date: key, count: days[key] }))
-        );
-    };
-
-    const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
     if (loading)
         return <div className={styles.loading}>Statistika yuklanmoqda...</div>;
@@ -166,7 +346,7 @@ const Statistics = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h2 className={styles.pageTitle}>Boshqaruv Paneli</h2>
+                <h2 className={styles.pageTitle}>Boshqaruv Paneli (Dinamik)</h2>
                 <span className={styles.dateBadge}>
                     {new Date().toLocaleDateString("uz-UZ", {
                         dateStyle: "full",
@@ -174,258 +354,54 @@ const Statistics = () => {
                 </span>
             </div>
 
-            {/* --- 1. HAMMA KPI KARTALAR --- */}
-            <div className={styles.kpiGrid}>
-                <div className={styles.kpiCard}>
-                    <div
-                        className={styles.kpiIconBox}
-                        style={{ background: "#eff6ff", color: "#3b82f6" }}>
-                        <Users size={24} />
-                    </div>
-                    <div>
-                        <p className={styles.kpiLabel}>Foydalanuvchilar</p>
-                        <h3 className={styles.kpiValue}>{counts.users}</h3>
-                    </div>
-                </div>
+            <motion.div layout className={styles.kpiGridExpanded}>
+                <KpiCard
+                    id="users"
+                    icon={Users}
+                    label="Foydalanuvchilar"
+                    value={counts.users}
+                    color="blue"
+                    onClick={handleCardClick}
+                    isExpanded={expandedCard === "users"}>
+                    <UserDetail dailyUsers={dailyStats.users} />
+                </KpiCard>
 
-                <div className={styles.kpiCard}>
-                    <div
-                        className={styles.kpiIconBox}
-                        style={{ background: "#f0fdf4", color: "#10b981" }}>
-                        <FileText size={24} />
-                    </div>
-                    <div>
-                        <p className={styles.kpiLabel}>Atamalar Bazasi</p>
-                        <h3 className={styles.kpiValue}>{counts.terms}</h3>
-                    </div>
-                </div>
+                <KpiCard
+                    id="terms"
+                    icon={FileText}
+                    label="Atamalar Bazasi"
+                    value={counts.terms}
+                    color="green"
+                    onClick={handleCardClick}
+                    isExpanded={expandedCard === "terms"}>
+                    <TermsDetail dailyTerms={dailyStats.terms} />
+                </KpiCard>
 
-                <div className={styles.kpiCard}>
-                    <div
-                        className={styles.kpiIconBox}
-                        style={{ background: "#fef3c7", color: "#d97706" }}>
-                        <MessageSquare size={24} />
-                    </div>
-                    <div>
-                        <p className={styles.kpiLabel}>Forum Savollari</p>
-                        <h3 className={styles.kpiValue}>{counts.questions}</h3>
-                    </div>
-                </div>
+                <KpiCard
+                    id="questions"
+                    icon={MessageSquare}
+                    label="Forum Savollari"
+                    value={counts.questions}
+                    color="orange"
+                    onClick={handleCardClick}
+                    isExpanded={expandedCard === "questions"}>
+                    <ForumDetail
+                        questionsCount={counts.questions}
+                        dailyQuestions={dailyStats.questions}
+                    />
+                </KpiCard>
 
-                <div className={styles.kpiCard}>
-                    <div
-                        className={styles.kpiIconBox}
-                        style={{ background: "#f3f4f6", color: "#4b5563" }}>
-                        <Activity size={24} />
-                    </div>
-                    <div>
-                        <p className={styles.kpiLabel}>Jami Tashriflar</p>
-                        <h3 className={styles.kpiValue}>{counts.visits}</h3>
-                    </div>
-                </div>
-            </div>
-
-            {/* --- 2. GRAFIKLAR --- */}
-            <div className={styles.chartsRow}>
-                <div className={styles.chartCard}>
-                    <div className={styles.cardHeader}>
-                        <h3>Tashriflar Dinamikasi (So'nggi 7 kun)</h3>
-                    </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={dailyStats}>
-                            <defs>
-                                <linearGradient
-                                    id="colorCount"
-                                    x1="0"
-                                    y1="0"
-                                    x2="0"
-                                    y2="1">
-                                    <stop
-                                        offset="5%"
-                                        stopColor="#3b82f6"
-                                        stopOpacity={0.8}
-                                    />
-                                    <stop
-                                        offset="95%"
-                                        stopColor="#3b82f6"
-                                        stopOpacity={0}
-                                    />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid
-                                strokeDasharray="3 3"
-                                vertical={false}
-                            />
-                            <XAxis
-                                dataKey="date"
-                                axisLine={false}
-                                tickLine={false}
-                            />
-                            <YAxis axisLine={false} tickLine={false} />
-                            <Tooltip />
-                            <Area
-                                type="monotone"
-                                dataKey="count"
-                                stroke="#3b82f6"
-                                fillOpacity={1}
-                                fill="url(#colorCount)"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-
-                <div className={styles.chartCard}>
-                    <div className={styles.cardHeader}>
-                        <h3>Qurilmalar Ulushi</h3>
-                    </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={deviceStats}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={70}
-                                outerRadius={90}
-                                paddingAngle={5}
-                                dataKey="value">
-                                {deviceStats.map((entry, index) => (
-                                    <Cell
-                                        key={`cell-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
-                                    />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* --- 3. JADVAL (PAGINATION BILAN) --- */}
-            <div className={styles.tableCard}>
-                <div className={styles.cardHeader}>
-                    <h3>Tashriflar Tarixi</h3>
-                    <span style={{ fontSize: "0.9rem", color: "#64748b" }}>
-                        Jami ko'rsatilmoqda: {visitLogs.length} ta
-                    </span>
-                </div>
-
-                <div className={styles.tableWrapper}>
-                    <table className={styles.logTable}>
-                        <thead>
-                            <tr>
-                                <th>Foydalanuvchi</th>
-                                <th>IP & Joylashuv</th>
-                                <th>Qurilma</th>
-                                <th>Brauzer</th>
-                                <th>Sahifa</th>
-                                <th>Vaqt</th>
-                            </tr>
-                        </thead>
-                        {/* ... Jadval ichi ... */}
-                        <tbody>
-                            {visitLogs.map((log) => (
-                                <tr key={log.id}>
-                                    <td>
-                                        {log.user_id ? (
-                                            <div className="flex flex-col">
-                                                <div
-                                                    style={{
-                                                        color: "#10b981",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: "5px",
-                                                        fontWeight: "600",
-                                                    }}>
-                                                    <UserCheck size={16} />
-                                                    {/* 🔥 Bu yerda endi aniq ISM chiqadi (Masalan: "Azizbek") */}
-                                                    {log.user_name}
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    color: "#94a3b8",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    gap: "5px",
-                                                }}>
-                                                <UserX size={16} />
-                                                Mehmon
-                                            </div>
-                                        )}
-                                    </td>
-                                    {/* ... Qolgan ustunlar o'zgarishsiz ... */}
-                                    <td>
-                                        <div style={{ fontSize: "0.85rem" }}>
-                                            <strong>
-                                                {log.ip_address || "-"}
-                                            </strong>
-                                            <br />
-                                            <span style={{ color: "#64748b" }}>
-                                                {log.city ? `${log.city}` : ""}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        {log.device_type === "Mobile"
-                                            ? "📱"
-                                            : "💻"}{" "}
-                                        {log.device_type}
-                                    </td>
-                                    <td
-                                        className={styles.pathCell}
-                                        title={log.page_path}>
-                                        {log.page_path}
-                                    </td>
-                                    <td className={styles.timeCell}>
-                                        {new Date(
-                                            log.created_at
-                                        ).toLocaleString("uz-UZ")}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* --- YANA YUKLASH TUGMASI --- */}
-                {hasMore && (
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            padding: "20px",
-                        }}>
-                        <button
-                            onClick={() => fetchMoreLogs(page + 1)}
-                            disabled={loadingLogs}
-                            style={{
-                                padding: "10px 20px",
-                                borderRadius: "8px",
-                                border: "1px solid #e2e8f0",
-                                background: loadingLogs ? "#f1f5f9" : "white",
-                                cursor: loadingLogs ? "wait" : "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                fontWeight: "600",
-                                color: "#475569",
-                                transition: "all 0.2s",
-                            }}>
-                            {loadingLogs ? (
-                                "Yuklanmoqda..."
-                            ) : (
-                                <>
-                                    <ChevronDown size={18} />
-                                    Yana yuklash
-                                </>
-                            )}
-                        </button>
-                    </div>
-                )}
-            </div>
+                <KpiCard
+                    id="visits"
+                    icon={Activity}
+                    label="Jami Tashriflar"
+                    value={counts.visits}
+                    color="gray"
+                    onClick={handleCardClick}
+                    isExpanded={expandedCard === "visits"}>
+                    <VisitDetail dailyVisits={dailyStats.visits} />
+                </KpiCard>
+            </motion.div>
         </div>
     );
 };

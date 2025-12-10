@@ -32,7 +32,6 @@ import Messages from "./components/admin/Messages";
 import TermsManager from "./components/admin/TermsManager";
 import CategoriesManager from "./components/admin/CategoriesManager";
 import LawsManager from "./components/admin/LawsManager";
-import VisitTracker from "./components/common/VisitTracker";
 import Statistics from "./components/admin/Statistics";
 
 const RedirectToAdmin = () => {
@@ -188,7 +187,6 @@ const AppContent = () => {
 function App() {
     return (
         <Router>
-            <VisitTracker />
             <AppContent />
         </Router>
     );
