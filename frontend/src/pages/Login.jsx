@@ -12,7 +12,8 @@ import {
 import styles from "../styles/login.module.css";
 
 const BOT_USERNAME = "@legallens_bot";
-const API_URL = "http://localhost:3000/api/verify-telegram-code";
+const API_URL =
+    "https://api-legallens-uz.onrender.com/api/verify-telegram-code";
 
 const Login = () => {
     const [authCode, setAuthCode] = useState("");
