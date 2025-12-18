@@ -346,7 +346,7 @@ const Statistics = () => {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
-                <h2 className={styles.pageTitle}>Boshqaruv Paneli (Dinamik)</h2>
+                <h2 className={styles.pageTitle}>Statistika</h2>
                 <span className={styles.dateBadge}>
                     {new Date().toLocaleDateString("uz-UZ", {
                         dateStyle: "full",

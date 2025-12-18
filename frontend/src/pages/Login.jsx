@@ -12,8 +12,7 @@ import {
 import styles from "../styles/login.module.css";
 
 const BOT_USERNAME = "@legallens_bot";
-const API_URL =
-    "https://api-legallens-uz.onrender.com/api/verify-telegram-code";
+const API_URL = "http://localhost:3000/api/verify-telegram-code";
 
 const Login = () => {
     const [authCode, setAuthCode] = useState("");
@@ -54,13 +53,14 @@ const Login = () => {
             try {
                 data = JSON.parse(textResponse);
             } catch {
-                throw new Error("Tizim xatoligi (Invalid JSON).");
+                throw new Error("Tizim xatoligi (Server Error).");
             }
 
             if (!response.ok) {
                 throw new Error(data.error || "Kod noto'g'ri.");
             }
 
+            // Sessiyani o'rnatish
             const { error } = await supabase.auth.setSession({
                 access_token: data.access_token,
                 refresh_token: data.refresh_token,
@@ -77,14 +77,12 @@ const Login = () => {
                 navigate("/forum");
             }, 800);
         } catch (error) {
-            console.error("Login xatosi:", error);
+            // console.error("Login xatosi:", error); // Xohlasangiz buni qoldiring, userga ko'rinmaydi (F12 bosmasa)
             setStatus({
                 type: "error",
-                text: error.message.includes("JSON")
-                    ? "Server xatosi."
-                    : error.message,
+                text: error.message,
             });
-            setAuthCode(""); // Xato bo'lsa kodni o'chirish
+            setAuthCode("");
             inputRef.current?.focus();
         } finally {
             setLoading(false);
