@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import styles from "../styles/login.module.css";
 
-const BOT_USERNAME = "@legallens_bot";
+const BOT_USERNAME = "@Huquqiy_Nazar_bot";
 const API_URL =
     "https://api-legallens-uz.onrender.com/api/verify-telegram-code";
 
